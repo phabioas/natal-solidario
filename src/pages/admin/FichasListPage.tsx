@@ -5,7 +5,7 @@ import { subscribeFichas } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Search, Pencil } from 'lucide-react'
+import { Plus, Search, Pencil, Printer } from 'lucide-react'
 import type { Ficha } from '@/models/types'
 
 export function FichasListPage() {
@@ -46,6 +46,10 @@ export function FichasListPage() {
         <Button onClick={() => navigate('/fichas/nova')}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Ficha
+        </Button>
+        <Button variant="outline" onClick={() => navigate('/fichas/imprimir')}>
+          <Printer className="mr-2 h-4 w-4" />
+          Imprimir Todas
         </Button>
       </div>
 
@@ -115,13 +119,22 @@ export function FichasListPage() {
                   )}
                 </td>
                 <td className="p-3 text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/fichas/editar/${ficha.id}`)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/fichas/imprimir/${ficha.id}`)}
+                    >
+                      <Printer className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/fichas/editar/${ficha.id}`)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

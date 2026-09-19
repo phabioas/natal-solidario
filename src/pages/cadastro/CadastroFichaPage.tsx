@@ -10,6 +10,7 @@ import {
   proximoNumeroFicha,
 } from '@/services/firestore'
 import { derivarOrigem, gerarIdCrianca, type Crianca, type Ficha, type Sexo } from '@/models/types'
+import { calcularIdade } from '@/lib/idade'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -426,6 +427,14 @@ function CriancaForm({
   canRemove: boolean
 }) {
   const [naoSabeData, setNaoSabeData] = useState(!crianca.dataNascimento && !!crianca.idadeTexto)
+  const { campanha } = useCampanha()
+
+  const dataFesta = campanha?.dataEvento
+    ? new Date(campanha.dataEvento.seconds * 1000).toISOString().split('T')[0]
+    : '2026-12-13'
+  const idadeCalculada = !naoSabeData && crianca.dataNascimento
+    ? calcularIdade(crianca.dataNascimento, dataFesta)
+    : ''
 
   return (
     <section className="rounded-xl border bg-white p-6 shadow-sm">
@@ -490,12 +499,19 @@ function CriancaForm({
             {naoSabeData ? 'Idade *' : 'Data de Nascimento *'}
           </Label>
           {!naoSabeData ? (
-            <Input
-              type="date"
-              value={crianca.dataNascimento || ''}
-              onChange={(e) => onChange('dataNascimento', e.target.value)}
-              className="text-lg"
-            />
+            <>
+              <Input
+                type="date"
+                value={crianca.dataNascimento || ''}
+                onChange={(e) => onChange('dataNascimento', e.target.value)}
+                className="text-lg"
+              />
+              {idadeCalculada && (
+                <p className="mt-1 text-sm text-green-600">
+                  Idade no dia da festa: <strong>{idadeCalculada}</strong>
+                </p>
+              )}
+            </>
           ) : (
             <Input
               value={crianca.idadeTexto || ''}

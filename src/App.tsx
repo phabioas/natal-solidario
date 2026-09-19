@@ -15,6 +15,7 @@ import { RelatoriosPage } from '@/pages/admin/RelatoriosPage'
 import { UsuariosPage } from '@/pages/admin/UsuariosPage'
 import { CadastroFichaPage } from '@/pages/cadastro/CadastroFichaPage'
 import { FichasCadastradorPage } from '@/pages/cadastro/FichasCadastradorPage'
+import { FichaPrintPage } from '@/pages/admin/FichaPrintPage'
 
 function LoadingScreen() {
   return (
@@ -67,6 +68,8 @@ export default function App() {
         <Route path="fichas" element={<FichasListPage />} />
         <Route path="fichas/nova" element={<CadastroFichaPage />} />
         <Route path="fichas/editar/:fichaId" element={<CadastroFichaPage />} />
+        <Route path="fichas/imprimir" element={<FichaPrintPage />} />
+        <Route path="fichas/imprimir/:fichaId" element={<FichaPrintPage />} />
         <Route path="importacao" element={<ImportacaoPage />} />
         <Route path="contatos" element={<ContatosPage />} />
         <Route path="apadrinhamento" element={<ApadrinhamentoPage />} />
