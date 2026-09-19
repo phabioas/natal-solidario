@@ -61,7 +61,7 @@ Página de cadastro onde o admin ou cadastrador cria e edita fichas. Cada ficha 
 - Preferencial (opcional)
 - Observação 2 (opcional)
 
-O ID da criança é gerado automaticamente: `{numeroFicha}{sequenciaDe2Digitos}` (ex: 00101, 00102).
+O ID da criança é gerado automaticamente: `{numeroFicha}/{sequenciaDe2Digitos}` (ex: `001/01`, `001/02`). O separador facilita a conferência e a entrega das sacolas.
 
 ### RF04b — Cancelamento de Ficha (Must)
 Uma ficha pode ser **cancelada** (não deletada). Motivo: fichas são pré-impressas e números não podem ser reusados quando preenchidas errado.
@@ -109,6 +109,15 @@ O admin atribui um padrinho a uma criança, registrando:
 
 A criança passa a ter status de sacola `pendente`. O admin pode desfazer o apadrinhamento.
 
+### RF07a — Materiais de Apadrinhamento e Compartilhamento (Must)
+O admin pode gerar os materiais usados no fluxo de apadrinhamento:
+
+- Lista alfabética das crianças ainda não apadrinhadas, com ID (`001/01`), nome, sexo e idade, disponível para impressão e compartilhamento por WhatsApp.
+- Ficha individual da criança apadrinhada, com ID, nome, sexo, idade, tamanhos de camisa/calça/calçado, indicação de TEA, conteúdo esperado da sacola, prazo de entrega e contato.
+- Compartilhamento da ficha como texto pelo WhatsApp.
+- Geração da ficha como imagem PNG para salvar ou compartilhar pelo recurso nativo do celular.
+- Impressão da ficha em papel ou PDF.
+
 ### RF08 — Controle de Sacolas (Must)
 Cada criança apadrinhada tem um status de sacola com o seguinte ciclo de vida:
 
@@ -134,7 +143,7 @@ O admin pode filtrar sacolas por status, por contato, por origem. Há uma visão
 
 ### RF09 — Check-in no Dia da Festa (Must)
 No dia do evento, uma página de check-in permite:
-- Buscar criança por ID (ex: 00101), nome da mãe, ou CPF
+- Buscar criança por ID (ex: `001/01`), nome da mãe, ou CPF
 - Marcar presença da criança na entrada (`presenteNaEntrada`)
 - Marcar entrega do presente à criança (`entregue_crianca` — atualiza o status da sacola)
 
@@ -192,7 +201,7 @@ Hosting no Firebase Hosting. Build via `npm run build` → `firebase deploy`. CI
 Cada ficha tem um número de 3 dígitos (001–499). O número identifica a origem conforme ranges configurados na campanha. Fichas avulsas (400–499) são para cadastros fora dos grupos fixos.
 
 ### RN02 — Numeração de Crianças
-O ID da criança é `{numeroFicha}{sequencia}` onde sequência é 2 dígitos (01–10). Ex: ficha 001, segunda criança → `00102`. Máximo 10 crianças por ficha.
+O ID da criança é `{numeroFicha}/{sequencia}` onde sequência é 2 dígitos (01–10). Ex: ficha 001, segunda criança → `001/02`. Máximo 10 crianças por ficha.
 
 ### RN03 — Data de Nascimento vs. Idade
 Uma criança tem **ou** data de nascimento **ou** idade informada (texto livre, ex: "4 anos"). Pelo menos um dos dois deve ser informado. Se ambos forem informados, data de nascimento prevalece.
@@ -292,7 +301,7 @@ Upload de planilha pelo admin na própria app. Substitui o `importador_fichas` (
 ### Crianca (embutido na ficha)
 ```typescript
 {
-  idCrianca: string             // "00101"
+  idCrianca: string             // "001/01"
   nomeCompleto: string
   sexo: "M" | "F"
   dataNascimento: string | null // ISO date ou null
@@ -371,10 +380,25 @@ type SacolaStatus =
 | 9 | Check-in | Busca por ID/nome/CPF, marcar presença e entrega (uso no dia do evento) **(admin only)** |
 | 10 | Relatórios | Relatórios com filtros e exportação CSV/impressão **(admin only)** |
 | 11 | Usuários | Gerenciar usuários autorizados e definir perfis **(admin only)** |
+| 12 | Lista para Apadrinhamento | Crianças disponíveis em ordem alfabética, pronta para impressão ou WhatsApp **(admin only)** |
+| 13 | Ficha do Padrinho | Dados da criança e instruções da sacola, com impressão, PNG e compartilhamento **(admin only)** |
 
 **Fluxo do cadastrador:** Login → vai direto para Cadastro de Fichas (página 4). Sem menu de navegação para outras páginas. Botão "Sair" visível.
 
 ---
+
+## Estado da Implementação e Pendências
+
+### Implementado
+- Identificador da criança no formato `001/01`.
+- Cálculo de idade para a data da festa.
+- Impressão individual e em lote das fichas cadastrais.
+- Lista alfabética de crianças não apadrinhadas para impressão/WhatsApp.
+- Ficha individual do padrinho com geração de PNG, download, compartilhamento nativo, texto para WhatsApp e impressão.
+- Drawer de navegação com fundo opaco no celular.
+
+### Pendente
+- **Ajustar e validar o layout geral para mobile.** Apesar de o menu já usar drawer, ainda é necessário revisar todas as páginas em celulares reais, especialmente tabelas, filtros, formulários, botões de ação, barras superiores e a apresentação da ficha individual.
 
 ## Decisões de Escopo — Fase 1 vs Fase 2
 

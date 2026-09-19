@@ -121,6 +121,27 @@ pendente → entregue → conferida → no_salao → entregue_crianca
                   ↘ faltando_itens ↗
 ```
 
+## Apadrinhamento e materiais para compartilhamento
+
+- O identificador da criança usa o formato `{ficha}/{sequência}`, por exemplo `001/01`.
+- A idade é calculada automaticamente para a data do evento quando há data de nascimento.
+- A tela de apadrinhamento permite imprimir ou compartilhar uma lista alfabética das crianças ainda disponíveis, com número, nome, sexo e idade.
+- Após o apadrinhamento, é possível abrir a ficha individual da criança contendo tamanhos, indicação de TEA, itens esperados na sacola, prazo e contato.
+- A ficha individual pode ser compartilhada como texto pelo WhatsApp, salva como PNG, compartilhada pelo recurso nativo do celular ou impressa em PDF.
+- As fichas cadastrais podem ser impressas individualmente ou em lote.
+
+## Situação atual e pendências
+
+### Entregue
+
+- Menu administrativo em formato drawer no celular.
+- Geração de imagem da ficha via Canvas, sem dependência de captura do DOM.
+- Compartilhamento e download da ficha individual.
+
+### Pendente
+
+- **Revisar e ajustar o layout geral para mobile**, incluindo páginas, tabelas, filtros, formulários, barras de ações e ficha individual. O drawer já foi adaptado, mas a responsividade completa da aplicação ainda precisa ser validada tela a tela em celulares reais.
+
 ## Fase 2 (futuro)
 
 - Login Google opcional para contatos
