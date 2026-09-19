@@ -12,6 +12,7 @@ export function CheckinPage() {
   const { campanha } = useCampanha()
   const [fichas, setFichas] = useState<Ficha[]>([])
   const [busca, setBusca] = useState('')
+  const [processando, setProcessando] = useState<string | null>(null)
 
   useEffect(() => {
     if (!campanha) return
@@ -20,7 +21,8 @@ export function CheckinPage() {
 
   const resultados = useMemo(() => {
     if (!busca || busca.length < 2) return []
-    const t = busca.toLowerCase()
+    const t = busca.toLowerCase().trim()
+    const documentoBusca = t.replace(/\D/g, '')
     return fichas
       .filter((f) => f.status === 'ativa')
       .flatMap((f) => f.criancas.map((c) => ({ ficha: f, crianca: c })))
@@ -28,7 +30,8 @@ export function CheckinPage() {
         crianca.idCrianca.includes(t) ||
         crianca.nomeCompleto.toLowerCase().includes(t) ||
         ficha.nomeResponsavel.toLowerCase().includes(t) ||
-        ficha.cpfResponsavel.includes(t)
+        ficha.cpfResponsavel.toLowerCase().includes(t) ||
+        (documentoBusca.length >= 2 && ficha.cpfResponsavel.replace(/\D/g, '').includes(documentoBusca))
       )
       .slice(0, 20)
   }, [fichas, busca])
@@ -36,8 +39,17 @@ export function CheckinPage() {
   if (!campanha) return null
 
   const handleCheckIn = async (ficha: Ficha, crianca: Crianca, presente: boolean) => {
-    await checkInCrianca(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca, presente)
-    toast.success(presente ? `${crianca.nomeCompleto} chegou! ✓` : `Check-in desfeito`)
+    if (!presente && !confirm(`Desfazer o check-in de ${crianca.nomeCompleto}?`)) return
+    setProcessando(crianca.idCrianca)
+    try {
+      await checkInCrianca(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca, presente)
+      toast.success(presente ? `${crianca.nomeCompleto} chegou! ✓` : 'Check-in desfeito')
+    } catch (err) {
+      console.error(err)
+      toast.error('Não foi possível atualizar o check-in.')
+    } finally {
+      setProcessando(null)
+    }
   }
 
   const handleEntregarPresente = async (ficha: Ficha, crianca: Crianca) => {
@@ -45,21 +57,34 @@ export function CheckinPage() {
       toast.error('A criança precisa estar presente (check-in) antes de receber o presente')
       return
     }
-    await updateSacolaStatus(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca, 'entregue_crianca')
-    toast.success(`Presente entregue a ${crianca.nomeCompleto} ✓`)
+    if (!crianca.apadrinhamento) {
+      toast.error('Esta criança não possui sacola vinculada')
+      return
+    }
+    if (!confirm(`Confirmar a entrega do presente para ${crianca.nomeCompleto}?`)) return
+    setProcessando(crianca.idCrianca)
+    try {
+      await updateSacolaStatus(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca, 'entregue_crianca')
+      toast.success(`Presente entregue a ${crianca.nomeCompleto} ✓`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Não foi possível registrar a entrega do presente.')
+    } finally {
+      setProcessando(null)
+    }
   }
 
   return (
-    <div className="p-8">
-      <h1 className="mb-6 text-3xl font-bold">Check-in da Festa</h1>
+    <div className="p-4 md:p-8">
+      <h1 className="mb-5 text-2xl font-bold md:mb-6 md:text-3xl">Check-in da Festa</h1>
 
-      <div className="relative mb-6">
+      <div className="relative mb-5 md:mb-6">
         <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
         <Input
           placeholder="Buscar por ID (001/01), criança, responsável ou documento..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="pl-10 text-lg"
+          className="h-12 pl-10 text-base md:text-lg"
           autoFocus
         />
       </div>
@@ -70,50 +95,80 @@ export function CheckinPage() {
 
       <div className="space-y-3">
         {resultados.map(({ ficha, crianca }) => (
-          <div key={crianca.idCrianca} className="rounded-lg border bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-green-100 font-bold text-green-700">
-                  {crianca.idCrianca}
+          <article key={crianca.idCrianca} className="rounded-xl border bg-white p-4 shadow-sm">
+            <div className="flex items-start gap-3 md:gap-4">
+              <div className="flex h-12 min-w-16 shrink-0 items-center justify-center rounded-lg bg-green-100 px-2 font-mono font-bold text-green-700 md:h-14">
+                {crianca.idCrianca}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="break-words text-base font-semibold leading-tight md:text-lg">{crianca.nomeCompleto}</div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {ficha.nomeResponsavel}
                 </div>
-                <div>
-                  <div className="text-lg font-semibold">{crianca.nomeCompleto}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Mãe: {ficha.nomeResponsavel} · {ficha.origem} · {crianca.sexo === 'M' ? '♂' : '♀'}
-                  </div>
-                  {crianca.apadrinhamento && (
-                    <div className="text-xs text-muted-foreground">
-                      Padrinho: {crianca.apadrinhamento.padrinho} · Contato: {crianca.apadrinhamento.contatoNome}
-                    </div>
-                  )}
+                <div className="text-xs text-muted-foreground">
+                  {ficha.origem} · {crianca.sexo === 'M' ? 'Masculino' : 'Feminino'}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {crianca.presenteNaEntrada ? (
-                  <>
-                    <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" /> Presente</Badge>
-                    {crianca.apadrinhamento?.status !== 'entregue_crianca' && (
-                      <Button size="sm" onClick={() => handleEntregarPresente(ficha, crianca)}>
-                        <Gift className="mr-1 h-4 w-4" />
-                        Entregar Presente
-                      </Button>
-                    )}
-                    {crianca.apadrinhamento?.status === 'entregue_crianca' && (
-                      <Badge variant="success">Presente entregue ✓</Badge>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => handleCheckIn(ficha, crianca, false)}>
-                      <Undo2 className="h-4 w-4" />
-                    </Button>
-                  </>
-                ) : (
-                  <Button size="sm" onClick={() => handleCheckIn(ficha, crianca, true)}>
-                    <CheckCircle2 className="mr-1 h-4 w-4" />
-                    Check-in
-                  </Button>
-                )}
-              </div>
+              {crianca.presenteNaEntrada && (
+                <Badge variant="success" className="hidden shrink-0 sm:flex">
+                  <CheckCircle2 className="mr-1 h-3 w-3" /> Presente
+                </Badge>
+              )}
             </div>
-          </div>
+
+            {crianca.apadrinhamento && (
+              <div className="mt-3 rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">
+                <div><strong>Padrinho:</strong> {crianca.apadrinhamento.padrinho}</div>
+                <div><strong>Contato:</strong> {crianca.apadrinhamento.contatoNome}</div>
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3">
+              {crianca.presenteNaEntrada ? (
+                <>
+                  <Badge variant="success" className="sm:hidden">
+                    <CheckCircle2 className="mr-1 h-3 w-3" /> Presente
+                  </Badge>
+                  <div className="flex-1" />
+                  {crianca.apadrinhamento?.status !== 'entregue_crianca' && crianca.apadrinhamento && (
+                    <Button
+                      className="h-11"
+                      onClick={() => handleEntregarPresente(ficha, crianca)}
+                      disabled={processando === crianca.idCrianca}
+                    >
+                      <Gift className="mr-2 h-4 w-4" />
+                      Entregar presente
+                    </Button>
+                  )}
+                  {crianca.apadrinhamento?.status === 'entregue_crianca' && (
+                    <Badge variant="success" className="h-9">Presente entregue ✓</Badge>
+                  )}
+                  {!crianca.apadrinhamento && (
+                    <Badge variant="outline" className="h-9">Sem sacola vinculada</Badge>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="h-11 w-11 p-0 text-red-600"
+                    onClick={() => handleCheckIn(ficha, crianca, false)}
+                    disabled={processando === crianca.idCrianca}
+                    aria-label="Desfazer check-in"
+                    title="Desfazer check-in"
+                  >
+                    <Undo2 className="h-5 w-5" />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  className="ml-auto h-11 min-w-32"
+                  onClick={() => handleCheckIn(ficha, crianca, true)}
+                  disabled={processando === crianca.idCrianca}
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  {processando === crianca.idCrianca ? 'Registrando...' : 'Check-in'}
+                </Button>
+              )}
+            </div>
+          </article>
         ))}
       </div>
 
