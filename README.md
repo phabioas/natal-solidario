@@ -131,12 +131,13 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 ### Entregue
 
 - Menu administrativo em formato drawer no celular.
+- Tela de Apadrinhamento adaptada para mobile com cards, filtros recolhíveis e ações por ícones.
 - Geração de imagem da ficha via Canvas, sem dependência de captura do DOM.
 - Compartilhamento e download da ficha individual.
 
 ### Pendente
 
-- **Revisar e ajustar o layout geral para mobile**, incluindo páginas, tabelas, filtros, formulários, barras de ações e ficha individual. O drawer já foi adaptado, mas a responsividade completa da aplicação ainda precisa ser validada tela a tela em celulares reais.
+- **Continuar o ajuste do layout geral para mobile** nas telas de Sacolas, Fichas, Check-in, Contatos, Usuários, Campanhas, Relatórios, Dashboard e ficha individual. O drawer e a tela de Apadrinhamento já foram adaptados.
 
 ### Removido após a carga inicial
 

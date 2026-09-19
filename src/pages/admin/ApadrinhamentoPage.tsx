@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Search, Heart, X, FileText, Share2 } from 'lucide-react'
+import { Search, Heart, X, FileText, Share2, SlidersHorizontal } from 'lucide-react'
 import type { Ficha, Contato, Crianca } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 import { toast } from 'sonner'
@@ -19,6 +19,7 @@ export function ApadrinhamentoPage() {
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'disponiveis' | 'apadrinhadas'>('todos')
   const [filtroOrigem, setFiltroOrigem] = useState('')
+  const [showFiltros, setShowFiltros] = useState(false)
   const [showApadrinhar, setShowApadrinhar] = useState<{ ficha: Ficha; crianca: Crianca } | null>(null)
 
   useEffect(() => {
@@ -45,35 +46,62 @@ export function ApadrinhamentoPage() {
   if (!campanha) return null
 
   return (
-    <div className="p-8">
-      <h1 className="mb-6 text-3xl font-bold">Apadrinhamento</h1>
-
-      <div className="mb-4 flex gap-3">
-        <Button variant="outline" onClick={() => navigate('/apadrinhamento/lista')}>
-          <FileText className="mr-2 h-4 w-4" />
-          Lista de Disponíveis (WhatsApp)
+    <div className="p-4 md:p-8">
+      <div className="mb-5 flex items-center justify-between gap-3 md:mb-6">
+        <h1 className="text-2xl font-bold md:text-3xl">Apadrinhamento</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/apadrinhamento/lista')}
+          aria-label="Abrir lista de crianças disponíveis"
+          title="Lista de disponíveis"
+          className="h-11 w-11 p-0 md:h-10 md:w-auto md:px-4"
+        >
+          <FileText className="h-5 w-5 md:mr-2 md:h-4 md:w-4" />
+          <span className="hidden md:inline">Lista de Disponíveis (WhatsApp)</span>
         </Button>
       </div>
 
-      {/* Filtros */}
-      <div className="mb-4 flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[250px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input placeholder="Buscar criança, ficha, mãe..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
+      {/* Busca e filtros */}
+      <div className="mb-4 space-y-3">
+        <div className="flex gap-2">
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input placeholder="Buscar criança, ficha, mãe..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
+          </div>
+          <Button
+            variant="outline"
+            className="relative h-10 w-10 shrink-0 p-0 md:hidden"
+            onClick={() => setShowFiltros((value) => !value)}
+            aria-label="Mostrar filtros"
+            title="Filtros"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {(filtroStatus !== 'todos' || filtroOrigem) && (
+              <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary" />
+            )}
+          </Button>
         </div>
-        <select className="h-10 rounded-md border px-3" value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as typeof filtroStatus)}>
-          <option value="todos">Todas</option>
-          <option value="disponiveis">Disponíveis</option>
-          <option value="apadrinhadas">Apadrinhadas</option>
-        </select>
-        <select className="h-10 rounded-md border px-3" value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
-          <option value="">Todas origens</option>
-          {campanha.origens.map((o) => <option key={o.nome} value={o.nome}>{o.nome}</option>)}
-        </select>
+        <div className={`${showFiltros ? 'flex' : 'hidden'} flex-col gap-2 rounded-lg border bg-muted/20 p-3 md:flex md:flex-row md:border-0 md:bg-transparent md:p-0`}>
+          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as typeof filtroStatus)}>
+            <option value="todos">Todas</option>
+            <option value="disponiveis">Disponíveis</option>
+            <option value="apadrinhadas">Apadrinhadas</option>
+          </select>
+          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
+            <option value="">Todas origens</option>
+            {campanha.origens.map((o) => <option key={o.nome} value={o.nome}>{o.nome}</option>)}
+          </select>
+          {(filtroStatus !== 'todos' || filtroOrigem) && (
+            <Button variant="ghost" size="sm" onClick={() => { setFiltroStatus('todos'); setFiltroOrigem('') }}>
+              Limpar filtros
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabela */}
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="hidden overflow-x-auto rounded-lg border md:block">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
@@ -114,6 +142,7 @@ export function ApadrinhamentoPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => navigate(`/apadrinhamento/ficha/${encodeURIComponent(crianca.idCrianca)}`)}
+                        aria-label="Abrir ficha do padrinho"
                         title="Ficha do Padrinho"
                       >
                         <Share2 className="h-4 w-4" />
@@ -124,6 +153,8 @@ export function ApadrinhamentoPage() {
                         variant="ghost"
                         size="sm"
                         className="text-red-600"
+                        aria-label="Desfazer apadrinhamento"
+                        title="Desfazer apadrinhamento"
                         onClick={() => {
                           if (confirm(`Desfazer apadrinhamento de ${crianca.nomeCompleto}?`)) {
                             desApadrinharCrianca(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca)
@@ -150,6 +181,95 @@ export function ApadrinhamentoPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Cards mobile */}
+      <div className="space-y-3 md:hidden">
+        {criancasFlat.map(({ ficha, crianca }) => (
+          <article key={crianca.idCrianca} className="rounded-xl border bg-white p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-mono text-sm font-bold text-primary">{crianca.idCrianca}</div>
+                <h2 className="break-words text-base font-semibold leading-tight">{crianca.nomeCompleto}</h2>
+              </div>
+              {crianca.apadrinhamento ? (
+                <Badge className={`${SACOLA_STATUS_COLORS[crianca.apadrinhamento.status]} shrink-0`}>
+                  {SACOLA_STATUS_LABELS[crianca.apadrinhamento.status]}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="shrink-0">Disponível</Badge>
+              )}
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground">Sexo</div>
+                <div>{crianca.sexo === 'M' ? 'Masculino' : 'Feminino'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Origem</div>
+                <div>{ficha.origem}</div>
+              </div>
+              <div className="col-span-2">
+                <div className="text-xs text-muted-foreground">Responsável</div>
+                <div className="break-words">{ficha.nomeResponsavel}</div>
+              </div>
+              {crianca.apadrinhamento && (
+                <>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Padrinho</div>
+                    <div className="break-words">{crianca.apadrinhamento.padrinho}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Contato</div>
+                    <div className="break-words">{crianca.apadrinhamento.contatoNome}</div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-2 border-t pt-3">
+              {crianca.apadrinhamento ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="h-11 w-11 p-0"
+                    onClick={() => navigate(`/apadrinhamento/ficha/${encodeURIComponent(crianca.idCrianca)}`)}
+                    aria-label="Abrir ficha do padrinho"
+                    title="Ficha do padrinho"
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-11 w-11 p-0 text-red-600"
+                    onClick={() => {
+                      if (confirm(`Desfazer apadrinhamento de ${crianca.nomeCompleto}?`)) {
+                        desApadrinharCrianca(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca)
+                          .then(() => toast.success('Apadrinhamento desfeito'))
+                      }
+                    }}
+                    aria-label="Desfazer apadrinhamento"
+                    title="Desfazer apadrinhamento"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </>
+              ) : (
+                <Button className="h-11" onClick={() => setShowApadrinhar({ ficha, crianca })}>
+                  <Heart className="mr-2 h-4 w-4" />
+                  Apadrinhar
+                </Button>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {criancasFlat.length === 0 && (
+        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+          Nenhuma criança encontrada.
+        </div>
+      )}
 
       <p className="mt-4 text-sm text-muted-foreground">{criancasFlat.length} criança(s)</p>
 
@@ -188,8 +308,8 @@ function ApadrinharDialog({
   const [contatoId, setContatoId] = useState('')
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+      <div className="max-h-[90vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:max-w-md sm:rounded-xl sm:p-6">
         <h2 className="mb-4 text-xl font-bold">Apadrinhar {crianca.nomeCompleto}</h2>
         <p className="mb-4 text-sm text-muted-foreground">Ficha {ficha.numeroFicha} · ID {crianca.idCrianca}</p>
         <div className="space-y-4">
@@ -207,10 +327,10 @@ function ApadrinharDialog({
               <p className="mt-1 text-sm text-red-600">Nenhum contato cadastrado. Cadastre contatos primeiro.</p>
             )}
           </div>
-          <div className="flex gap-3 pt-4">
-            <Button variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row">
+            <Button variant="outline" className="h-11 flex-1" onClick={onClose}>Cancelar</Button>
             <Button
-              className="flex-1"
+              className="h-11 flex-1"
               disabled={!padrinho || !contatoId}
               onClick={() => {
                 const contato = contatos.find((c) => c.id === contatoId)!
