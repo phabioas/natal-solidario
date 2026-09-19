@@ -13,7 +13,6 @@ import { CheckinPage } from '@/pages/admin/CheckinPage'
 import { RelatoriosPage } from '@/pages/admin/RelatoriosPage'
 import { UsuariosPage } from '@/pages/admin/UsuariosPage'
 import { CadastroFichaPage } from '@/pages/cadastro/CadastroFichaPage'
-import { FichasCadastradorPage } from '@/pages/cadastro/FichasCadastradorPage'
 import { FichaPrintPage } from '@/pages/admin/FichaPrintPage'
 import { ListaApadrinhamentoPrintPage } from '@/pages/admin/ListaApadrinhamentoPrintPage'
 import { FichaPadrinhoPage } from '@/pages/admin/FichaPadrinhoPage'
@@ -46,26 +45,14 @@ export default function App() {
   if (loading) return <LoadingScreen />
   if (!user || !usuario) return <LoginPage />
 
-  // Cadastrador: só vê o cadastro de fichas
-  if (usuario.role === 'cadastrador') {
-    if (campanhaLoading) return <LoadingScreen />
-    if (!campanha) return <NoCampanha />
-    return (
-      <Routes>
-        <Route path="/" element={<FichasCadastradorPage />} />
-        <Route path="/nova-ficha" element={<CadastroFichaPage />} />
-        <Route path="/editar-ficha/:fichaId" element={<CadastroFichaPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    )
-  }
+  if (campanhaLoading) return <LoadingScreen />
+  if (!campanha) return <NoCampanha />
 
-  // Admin: vê tudo
   return (
     <Routes>
       <Route path="/" element={<AdminLayout />}>
         <Route index element={<DashboardPage />} />
-        <Route path="campanhas" element={<CampanhasPage />} />
+        {usuario.role === 'admin' && <Route path="campanhas" element={<CampanhasPage />} />}
         <Route path="fichas" element={<FichasListPage />} />
         <Route path="fichas/nova" element={<CadastroFichaPage />} />
         <Route path="fichas/editar/:fichaId" element={<CadastroFichaPage />} />
@@ -76,7 +63,7 @@ export default function App() {
         <Route path="sacolas" element={<SacolasPage />} />
         <Route path="checkin" element={<CheckinPage />} />
         <Route path="relatorios" element={<RelatoriosPage />} />
-        <Route path="usuarios" element={<UsuariosPage />} />
+        {usuario.role === 'admin' && <Route path="usuarios" element={<UsuariosPage />} />}
       </Route>
       <Route path="apadrinhamento/lista" element={<ListaApadrinhamentoPrintPage />} />
       <Route path="apadrinhamento/ficha/:criancaId" element={<FichaPadrinhoPage />} />

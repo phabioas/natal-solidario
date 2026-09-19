@@ -20,15 +20,15 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/fichas', label: 'Fichas', icon: FolderPlus },
-  { to: '/apadrinhamento', label: 'Apadrinhamento', icon: HeartHandshake },
-  { to: '/sacolas', label: 'Sacolas', icon: Package },
-  { to: '/contatos', label: 'Contatos', icon: Users },
-  { to: '/checkin', label: 'Check-in', icon: ClipboardCheck },
-  { to: '/relatorios', label: 'Relatórios', icon: BarChart3 },
-  { to: '/campanhas', label: 'Campanhas', icon: TreePine },
-  { to: '/usuarios', label: 'Usuários', icon: Settings },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, adminOnly: false },
+  { to: '/fichas', label: 'Fichas', icon: FolderPlus, adminOnly: false },
+  { to: '/apadrinhamento', label: 'Apadrinhamento', icon: HeartHandshake, adminOnly: false },
+  { to: '/sacolas', label: 'Sacolas', icon: Package, adminOnly: false },
+  { to: '/contatos', label: 'Contatos', icon: Users, adminOnly: false },
+  { to: '/checkin', label: 'Check-in', icon: ClipboardCheck, adminOnly: false },
+  { to: '/relatorios', label: 'Relatórios', icon: BarChart3, adminOnly: false },
+  { to: '/campanhas', label: 'Campanhas', icon: TreePine, adminOnly: true },
+  { to: '/usuarios', label: 'Usuários', icon: Settings, adminOnly: true },
 ]
 
 export function AdminLayout() {
@@ -55,7 +55,7 @@ export function AdminLayout() {
       )}
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {navItems.map((item) => (
+        {navItems.filter((item) => !item.adminOnly || usuario?.role === 'admin').map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

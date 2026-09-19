@@ -2,7 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper: check if user is in usuarios collection
     function isAuthorized() {
       return request.auth != null &&
              exists(/databases/$(database)/documents/usuarios/$(request.auth.uid));
@@ -16,31 +15,31 @@ service cloud.firestore {
       return isAuthorized() && getUserRole() == 'admin';
     }
 
-    function isCadastrador() {
-      return isAuthorized() && getUserRole() == 'cadastrador';
+    function isEquipe() {
+      return isAuthorized() && getUserRole() == 'equipe';
     }
 
-    // usuarios: only admins can read/write
+    // Cada usuário consulta o próprio perfil; somente admins listam e gerenciam usuários.
     match /usuarios/{uid} {
-      allow read: if isAuthorized();
-      allow write: if isAdmin();
+      allow get: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
-    // campanhas: admins read/write all, cadastradores read active
     match /campanhas/{campanhaId} {
+      // Toda a equipe precisa conhecer a campanha ativa; configuração é exclusiva do admin.
       allow read: if isAuthorized();
-      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
 
-      // fichas: admins full, cadastradores can create/update (cadastro)
+      // Fluxo operacional completo para admin e equipe.
       match /fichas/{fichaId} {
-        allow read: if isAuthorized();
-        allow create, update: if isAdmin() || isCadastrador();
+        allow read, create, update: if isAdmin() || isEquipe();
         allow delete: if isAdmin();
       }
 
-      // contatos: admins only
       match /contatos/{contatoId} {
-        allow read, write: if isAdmin();
+        allow read, create, update: if isAdmin() || isEquipe();
+        allow delete: if isAdmin();
       }
     }
   }

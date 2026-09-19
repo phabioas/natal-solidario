@@ -49,7 +49,7 @@ export function UsuariosPage() {
                 <td className="p-3">{u.nome}</td>
                 <td className="p-3">
                   <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                    {u.role === 'admin' ? 'Admin' : 'Cadastrador'}
+                    {u.role === 'admin' ? 'Admin' : 'Equipe'}
                   </Badge>
                 </td>
                 <td className="p-3 text-right">
@@ -61,7 +61,7 @@ export function UsuariosPage() {
                         onChange={(e) => updateUsuario(u.id, { role: e.target.value as UserRole }).then(() => toast.success('Perfil atualizado'))}
                       >
                         <option value="admin">Admin</option>
-                        <option value="cadastrador">Cadastrador</option>
+                        <option value="equipe">Equipe</option>
                       </select>
                       <Button
                         variant="ghost"
@@ -103,7 +103,7 @@ export function UsuariosPage() {
 function UsuarioForm({ onClose, onSave }: { onClose: () => void; onSave: (data: Omit<Usuario, 'id' | 'createdAt'>) => Promise<void> }) {
   const [email, setEmail] = useState('')
   const [nome, setNome] = useState('')
-  const [role, setRole] = useState<UserRole>('cadastrador')
+  const [role, setRole] = useState<UserRole>('equipe')
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -124,8 +124,8 @@ function UsuarioForm({ onClose, onSave }: { onClose: () => void; onSave: (data: 
           <div>
             <Label className="mb-1 block">Perfil</Label>
             <select className="h-10 w-full rounded-md border px-3" value={role} onChange={(e) => setRole(e.target.value as UserRole)}>
-              <option value="cadastrador">Cadastrador (só cadastra fichas)</option>
-              <option value="admin">Admin (acesso total)</option>
+              <option value="equipe">Equipe (acesso ao fluxo operacional)</option>
+              <option value="admin">Admin (operacional + configurações)</option>
             </select>
           </div>
           <div className="flex gap-3 pt-4">

@@ -14,7 +14,7 @@ export type SacolaStatus =
   | 'no_salao'
   | 'entregue_crianca'
 
-export type UserRole = 'admin' | 'cadastrador'
+export type UserRole = 'admin' | 'equipe'
 
 // ─── Apadrinhamento ─────────────────────────────────────
 
@@ -35,7 +35,7 @@ export interface Apadrinhamento {
 // ─── Criança ────────────────────────────────────────────
 
 export interface Crianca {
-  idCrianca: string // "00101"
+  idCrianca: string // "001/01"
   nomeCompleto: string
   sexo: Sexo
   dataNascimento: string | null // ISO date
@@ -111,7 +111,7 @@ export interface Campanha {
   createdAt: Timestamp | null
 }
 
-// ─── Usuário (Admin/Cadastrador) ────────────────────────
+// ─── Usuário (Admin/Equipe) ─────────────────────────────
 
 export interface Usuario {
   id: string // Firebase Auth UID

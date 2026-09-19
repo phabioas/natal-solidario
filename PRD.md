@@ -21,10 +21,10 @@
 ### RF01 — Autenticação Google com Dois Perfis (Must)
 Login via Google (Firebase Auth). Controle de acesso por whitelist de emails na collection `usuarios` com dois perfis:
 
-- **Admin** (gestores): acesso total — campanhas, fichas, apadrinhamento, sacolas, contatos, check-in, relatórios, usuários
-- **Cadastrador** (pessoa que cadastra): acesso **apenas à página de cadastro de fichas** com interface simplificada. Não vê apadrinhamento, sacolas, relatórios, nem configurações.
+- **Admin** (gestores): fluxo operacional completo e acesso às configurações de campanhas e usuários.
+- **Equipe** (voluntários autorizados): acesso ao fluxo operacional completo — fichas, apadrinhamento, sacolas, contatos, check-in, relatórios e impressões.
 
-O admin define o perfil ao autorizar um email.
+O admin define o perfil ao autorizar um email. Somente admins alteram campanhas e a whitelist de usuários.
 
 ### RF02 — Gestão de Campanhas / Multi-ano (Must)
 Criar, listar e ativar campanhas anuais (ex: "Natal Solidário 2026"). Cada campanha tem ano, nome, data e local do evento, e está ativa ou não. A campanha ativa é o contexto padrão de todas as operações. Dados de campanhas anteriores são preservados para consulta e comparação.
@@ -38,7 +38,7 @@ Ao criar/editar uma campanha, o admin define as origens (regiões/grupos) e seus
 A origem de uma ficha é derivada automaticamente do seu número.
 
 ### RF04 — Cadastro de Fichas (Mães + Crianças) (Must)
-Página de cadastro onde o admin ou cadastrador cria e edita fichas. Cada ficha representa uma mãe/responsável e seus filhos:
+Página de cadastro onde o admin ou a equipe cria e edita fichas. Cada ficha representa uma mãe/responsável e seus filhos:
 
 **Dados da mãe:**
 - Número da ficha (sugerido automaticamente como o próximo disponível da origem, mas editável — não exige ordem sequencial)
@@ -71,7 +71,7 @@ Uma ficha pode ser **cancelada** (não deletada). Motivo: fichas são pré-impre
 - Número da ficha cancelada fica **queimado** — não pode ser reusado em novo cadastro
 - Fichas canceladas aparecem na lista cinza/marcadas, mas não entram em dashboard, apadrinhamento, sacolas ou relatórios
 - Não é possível cancelar ficha com crianças apadrinhadas — desfazer apadrinhamento primeiro
-- Admin pode cancelar; cadastrador pode cancelar fichas que ele mesmo criou (com confirmação)
+- Admin e equipe podem cancelar fichas, sempre com confirmação
 
 ### RF04a — Interface de Cadastro Simplificada (Must)
 A interface de cadastro é **prioridade zero** — projetada para uma pessoa com limitação tecnológica:
@@ -169,7 +169,7 @@ Páginas de relatório com filtros e exportação:
 - Exportação para CSV/impressão
 
 ### RF12 — Gestão de Usuários (Should)
-O admin pode autorizar/remover emails e definir o perfil (admin ou cadastrador) de cada usuário. O primeiro admin é configurado manualmente no Firestore.
+O admin pode autorizar/remover emails e definir o perfil (admin ou equipe) de cada usuário. O primeiro admin é configurado manualmente no Firestore.
 
 ---
 
@@ -185,7 +185,7 @@ No dia do evento, o check-in deve tolerar instabilidade de internet. Firestore t
 Listas de até 500 fichas / 5000 crianças carregam com paginação virtualizada. Busca por nome/CPF/ID é responsiva (< 500ms).
 
 ### NRF04 — Segurança (Must)
-Firestore Security Rules negando leitura/escrita para não autenticados. Apenas usuários na whitelist (collection `usuarios`) leem/escrevem. Cadastradores só podem escrever na subcollection `fichas` da campanha ativa. Admins têm acesso total. Validação de dados no client e regras no Firestore.
+Firestore Security Rules negando leitura/escrita para não autenticados. Usuários da equipe acessam o fluxo operacional; somente admins gerenciam campanhas, usuários e exclusões físicas. Validação de dados no client e regras no Firestore.
 
 ### NRF05 — Custo Firebase (Must)
 Manter-se no tier gratuito (Spark). Volume esperado: ~500 fichas/ano, ~5000 crianças/ano, < 10 admins. Firestore reads/writes e Auth stays well within free tier.
@@ -238,7 +238,7 @@ usuarios/{uid}
 Fichas e contatos são subcollection de campanha, isolando dados por ano. Crianças são array embutido na ficha (máx 10, dentro do limite de documento de 1MB do Firestore).
 
 ### ADR-03: Auth Google + Whitelist com Roles
-Login apenas Google. Authorization por whitelist na collection `usuarios` — email deve estar cadastrado para acessar. Dois roles: `admin` (acesso total) e `cadastrador` (acesso apenas a cadastro de fichas com interface simplificada). Firestore Security Rules diferenciam acesso por role.
+Login apenas Google. Authorization por whitelist na collection `usuarios`. Dois roles: `admin` (operacional + configurações) e `equipe` (fluxo operacional completo). Firestore Security Rules diferenciam configurações administrativas das operações do evento.
 
 ### ADR-04: Contatos e Padrinhos como registros, não usuários
 Contatos e padrinhos não logam na fase 1. Contatos têm campo `email` e `uid` (vazio) preparados para futuro login. Quando um contato pedir acesso, o admin linka o registro à conta Google preenchendo o `uid`.
@@ -352,13 +352,13 @@ type SacolaStatus =
 }
 ```
 
-### Collection: `usuarios` (admins e cadastradores)
+### Collection: `usuarios` (admins e equipe)
 ```typescript
 {
   id: string                    // Firebase Auth UID
   email: string                 // "phabi@gmail.com"
   nome: string
-  role: 'admin' | 'cadastrador' // admin = acesso total, cadastrador = só cadastro
+  role: 'admin' | 'equipe'      // equipe = fluxo operacional; admin = configurações também
   createdAt: Timestamp
 }
 ```
@@ -372,7 +372,7 @@ type SacolaStatus =
 | 1 | Login | Tela inicial com botão "Entrar com Google" |
 | 2 | Dashboard | Visão geral da campanha ativa com KPIs e gráficos **(admin only)** |
 | 3 | Campanhas | Lista de campanhas, criar nova, editar origens, ativar **(admin only)** |
-| 4 | Cadastro de Fichas | **Interface simplificada** para cadastrador. Lista + criar/editar ficha com crianças. Prioridade zero de UX |
+| 4 | Cadastro de Fichas | **Interface simplificada** para toda a equipe. Lista + criar/editar ficha com crianças. Prioridade zero de UX |
 | 6 | Contatos | Lista CRUD de contatos (voluntários GETJ) **(admin only)** |
 | 7 | Apadrinhamento | Lista de crianças com filtros. Atribuir padrinho + contato. Atualizar status da sacola **(admin only)** |
 | 8 | Sacolas | Visão do ciclo de vida das sacolas. "O que falta" agrupado por contato. Atualizar status em lote **(admin only)** |
@@ -382,7 +382,7 @@ type SacolaStatus =
 | 12 | Lista para Apadrinhamento | Crianças disponíveis em ordem alfabética, pronta para impressão ou WhatsApp **(admin only)** |
 | 13 | Ficha do Padrinho | Dados da criança e instruções da sacola, com impressão, PNG e compartilhamento **(admin only)** |
 
-**Fluxo do cadastrador:** Login → vai direto para Cadastro de Fichas (página 4). Sem menu de navegação para outras páginas. Botão "Sair" visível.
+**Fluxo da equipe:** Login → dashboard e menu do fluxo operacional. Campanhas e Usuários aparecem apenas para admins.
 
 ---
 
@@ -403,7 +403,7 @@ type SacolaStatus =
 
 ### Fase 1 (este projeto)
 - Tudo descrito nos RFs acima
-- Dois perfis: admin (tudo) + cadastrador (só cadastro, interface simplificada)
+- Dois perfis: admin (operacional + configurações) e equipe (fluxo operacional completo)
 - Contatos e padrinhos são registros sem login
 
 ### Fase 2 (futuro, se a prática pedir)

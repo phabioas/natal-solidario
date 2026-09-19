@@ -68,14 +68,14 @@ Como admin, vá em **Campanhas** → **Nova Campanha**:
 - Local
 - Origens (já vêm pré-preenchidas: Canadá 1-99, Itapark 100-199, PROVER 200-299, Amélia 300-399, Avulsas 400-499)
 
-### 5. Autorizar a pessoa que vai cadastrar
+### 5. Autorizar uma pessoa da equipe
 
 Vá em **Usuários** → **Autorizar Email**:
 - Email da pessoa (Google)
 - Nome
-- Perfil: **Cadastrador**
+- Perfil: **Equipe**
 
-Ela vai fazer login com Google e ir direto para a tela de cadastro de fichas (interface simplificada).
+Ela terá acesso ao fluxo operacional: fichas, apadrinhamento, sacolas, contatos, check-in, relatórios e impressões.
 
 ## Estrutura do projeto
 
@@ -86,8 +86,8 @@ src/
 ├── lib/                  # Firebase init + utils
 ├── models/               # Tipos TypeScript (Ficha, Crianca, Campanha, etc)
 ├── pages/
-│   ├── admin/            # Páginas do admin (Dashboard, Fichas, Apadrinhamento, etc)
-│   └── cadastro/         # Páginas do cadastrador (interface simplificada)
+│   ├── admin/            # Páginas operacionais e administrativas
+│   └── cadastro/         # Formulário simplificado de cadastro de fichas
 ├── services/             # FirestoreService (CRUD + regras de negócio)
 ├── App.tsx               # Roteamento + role-based access
 └── main.tsx              # Entry point
@@ -97,8 +97,8 @@ src/
 
 | Perfil | Acesso |
 |---|---|
-| **Admin** | Dashboard, Fichas, Apadrinhamento, Sacolas, Contatos, Check-in, Relatórios, Campanhas, Usuários |
-| **Cadastrador** | Apenas cadastro de fichas (interface simplificada, sem opções avançadas) |
+| **Admin** | Fluxo operacional completo + Campanhas e Usuários |
+| **Equipe** | Dashboard, Fichas, Apadrinhamento, Sacolas, Contatos, Check-in, Relatórios e impressões |
 
 ## Modelo de dados (Firestore)
 
@@ -107,7 +107,7 @@ campanhas/{campanhaId}
   ├── fichas/{numeroFicha}     → mãe + array de crianças (até 10)
   └── contatos/{contatoId}     → voluntários GETJ
 
-usuarios/{uid}                 → admins e cadastradores (whitelist)
+usuarios/{uid}                 → admins e equipe (whitelist)
 ```
 
 ## Status de sacola
