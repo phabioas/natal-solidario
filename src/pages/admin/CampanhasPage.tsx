@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Check, Trash2, Pencil } from 'lucide-react'
+import { Plus, Check, Trash2, Pencil, X } from 'lucide-react'
 import type { Campanha, Origem } from '@/models/types'
 import { toast } from 'sonner'
 
@@ -18,10 +18,10 @@ export function CampanhasPage() {
   useEffect(() => { load() }, [])
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Campanhas</h1>
-        <Button onClick={() => { setEditing(null); setShowForm(true) }}>
+    <div className="p-4 md:p-8">
+      <div className="mb-5 flex items-center justify-between gap-3 md:mb-6">
+        <h1 className="text-2xl font-bold md:text-3xl">Campanhas</h1>
+        <Button className="h-11 md:h-10" onClick={() => { setEditing(null); setShowForm(true) }}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Campanha
         </Button>
@@ -30,19 +30,25 @@ export function CampanhasPage() {
       <div className="space-y-4">
         {campanhas.map((c) => (
           <Card key={c.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{c.nome}</CardTitle>
-                <div className="flex items-center gap-2">
+            <CardHeader className="p-4 md:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <CardTitle className="break-words text-lg">{c.nome}</CardTitle>
+                <div className="flex shrink-0 items-center gap-2">
                   {c.ativa && <Badge variant="success">Ativa</Badge>}
-                  <Button variant="ghost" size="sm" onClick={() => { setEditing(c); setShowForm(true) }}>
-                    <Pencil className="h-4 w-4" />
+                  <Button
+                    variant="ghost"
+                    className="h-11 w-11 p-0"
+                    onClick={() => { setEditing(c); setShowForm(true) }}
+                    aria-label={`Editar ${c.nome}`}
+                    title="Editar campanha"
+                  >
+                    <Pencil className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="mb-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+            <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+              <div className="mb-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <div><span className="text-muted-foreground">Ano:</span> {c.ano}</div>
                 <div><span className="text-muted-foreground">Origens:</span> {c.origens.length}</div>
                 <div><span className="text-muted-foreground">Local:</span> {c.localEvento.nome || '-'}</div>
@@ -56,7 +62,7 @@ export function CampanhasPage() {
                 ))}
               </div>
               {!c.ativa && (
-                <Button size="sm" onClick={() => ativarCampanha(c.id).then(load).then(() => toast.success('Campanha ativada'))}>
+                <Button className="h-11 w-full sm:w-auto" onClick={() => ativarCampanha(c.id).then(load).then(() => toast.success('Campanha ativada'))}>
                   <Check className="mr-2 h-4 w-4" />
                   Ativar
                 </Button>
@@ -139,11 +145,16 @@ function CampanhaForm({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-xl font-bold">{isEdit ? 'Editar Campanha' : 'Nova Campanha'}</h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
+      <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:max-w-2xl sm:rounded-xl sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-xl font-bold">{isEdit ? 'Editar Campanha' : 'Nova Campanha'}</h2>
+          <Button variant="ghost" className="h-11 w-11 shrink-0 p-0" onClick={onClose} aria-label="Fechar">
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label className="mb-1 block">Nome *</Label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="XIII Natal Solidário 2026" />
@@ -157,7 +168,7 @@ function CampanhaForm({
             <Label className="mb-1 block">Data do Evento</Label>
             <Input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label className="mb-1 block">Local</Label>
               <Input value={localNome} onChange={(e) => setLocalNome(e.target.value)} placeholder="Centro Recreativo..." />
@@ -190,7 +201,7 @@ function CampanhaForm({
               </Button>
             </div>
             {/* Header */}
-            <div className="mb-1 flex gap-2 px-1 text-xs font-medium text-muted-foreground">
+            <div className="mb-1 hidden gap-2 px-1 text-xs font-medium text-muted-foreground sm:flex">
               <div className="flex-1">Região / Responsável</div>
               <div className="w-24 text-center">Primeira Ficha</div>
               <div className="w-24 text-center">Última Ficha</div>
@@ -199,14 +210,28 @@ function CampanhaForm({
             </div>
             <div className="space-y-2">
               {origens.map((o, i) => (
-                <div key={i} className="flex gap-2">
-                  <Input placeholder="Ex: Canadá" value={o.nome} onChange={(e) => updateOrigem(i, 'nome', e.target.value)} className="flex-1" />
-                  <Input type="number" placeholder="001" value={o.fichaInicio} onChange={(e) => updateOrigem(i, 'fichaInicio', parseInt(e.target.value))} className="w-24 text-center" />
-                  <Input type="number" placeholder="099" value={o.fichaFim} onChange={(e) => updateOrigem(i, 'fichaFim', parseInt(e.target.value))} className="w-24 text-center" />
-                  <Input type="number" placeholder="175" value={o.metaCriancas} onChange={(e) => updateOrigem(i, 'metaCriancas', parseInt(e.target.value))} className="w-24 text-center" />
-                  <Button size="sm" variant="ghost" onClick={() => removeOrigem(i)} className="w-10 text-red-600">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div key={i} className="grid grid-cols-2 gap-3 rounded-lg border p-3 sm:flex sm:gap-2 sm:border-0 sm:p-0">
+                  <div className="col-span-2 sm:flex-1">
+                    <Label className="mb-1 block text-xs sm:hidden">Região / Responsável</Label>
+                    <Input placeholder="Ex: Canadá" value={o.nome} onChange={(e) => updateOrigem(i, 'nome', e.target.value)} />
+                  </div>
+                  <div className="sm:w-24">
+                    <Label className="mb-1 block text-xs sm:hidden">Primeira ficha</Label>
+                    <Input type="number" placeholder="001" value={o.fichaInicio} onChange={(e) => updateOrigem(i, 'fichaInicio', parseInt(e.target.value))} className="text-center" />
+                  </div>
+                  <div className="sm:w-24">
+                    <Label className="mb-1 block text-xs sm:hidden">Última ficha</Label>
+                    <Input type="number" placeholder="099" value={o.fichaFim} onChange={(e) => updateOrigem(i, 'fichaFim', parseInt(e.target.value))} className="text-center" />
+                  </div>
+                  <div className="sm:w-24">
+                    <Label className="mb-1 block text-xs sm:hidden">Esperado</Label>
+                    <Input type="number" placeholder="175" value={o.metaCriancas} onChange={(e) => updateOrigem(i, 'metaCriancas', parseInt(e.target.value))} className="text-center" />
+                  </div>
+                  <div className="flex items-end justify-end sm:w-10 sm:items-center">
+                    <Button variant="ghost" onClick={() => removeOrigem(i)} className="h-11 w-11 p-0 text-red-600" aria-label={`Remover origem ${o.nome || i + 1}`} title="Remover origem">
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -215,9 +240,9 @@ function CampanhaForm({
             </p>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
-            <Button className="flex-1" onClick={handleSave}>
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row">
+            <Button variant="outline" className="h-11 flex-1" onClick={onClose}>Cancelar</Button>
+            <Button className="h-11 flex-1" onClick={handleSave}>
               {isEdit ? 'Salvar Alterações' : 'Criar e Ativar'}
             </Button>
           </div>
