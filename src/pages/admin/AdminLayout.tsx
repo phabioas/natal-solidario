@@ -122,7 +122,7 @@ export function AdminLayout() {
       {/* Sidebar - mobile drawer */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 flex h-full w-64 flex-col border-r bg-muted/30 transition-transform duration-200 md:static md:translate-x-0',
+          'fixed left-0 top-0 z-50 flex h-full w-64 flex-col border-r bg-white shadow-xl transition-transform duration-200 md:static md:bg-muted/30 md:shadow-none md:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
