@@ -145,14 +145,14 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
     ctx.fillText(text, W / 2, y)
     y += size + 6
   }
-  const labelValue = (label: string, value: string, x: number) => {
+  const labelValue = (label: string, value: string, x: number, maxWidth?: number) => {
     ctx.font = 'bold 16px system-ui, sans-serif'
     ctx.fillStyle = '#333'
     ctx.textAlign = 'left'
     ctx.fillText(label, x, y)
     const labelW = ctx.measureText(label).width
     ctx.font = '16px system-ui, sans-serif'
-    ctx.fillText(value, x + labelW + 6, y)
+    ctx.fillText(value, x + labelW + 6, y, maxWidth ? maxWidth - labelW - 6 : undefined)
   }
   const drawBox = (x: number, w: number, h: number, fill: string, border?: string) => {
     if (fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h) }
@@ -208,21 +208,18 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
   const sexo = crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'
   const nasc = crianca.dataNascimento ? formatDate(crianca.dataNascimento) : '-'
 
-  labelValue('Nome:', crianca.nomeCompleto, P)
-  y += 4
-  labelValue('Sexo:', sexo, P + colW)
-  y -= 22
-  labelValue('Idade na festa:', idade, P)
-  y += 4
-  labelValue('Nascimento:', nasc, P + colW)
-  y -= 22
-  labelValue('Camisa:', crianca.tamCamiseta || '-', P)
-  y += 4
-  labelValue('Calça:', crianca.tamCalca || '-', P + colW)
-  y -= 22
-  labelValue('Calçado:', crianca.tamCalcado || '-', P)
-  y += 4
-  labelValue('TEA:', crianca.tea ? '🧩 Sim' : 'Não', P + colW)
+  labelValue('Nome:', crianca.nomeCompleto, P, W - P * 2)
+  y += 28
+  labelValue('Sexo:', sexo, P, colW)
+  labelValue('Idade:', idade, P + colW, colW)
+  y += 28
+  labelValue('Nascimento:', nasc, P, colW)
+  labelValue('Camisa:', crianca.tamCamiseta || '-', P + colW, colW)
+  y += 28
+  labelValue('Calça:', crianca.tamCalca || '-', P, colW)
+  labelValue('Calçado:', crianca.tamCalcado || '-', P + colW, colW)
+  y += 28
+  labelValue('TEA:', crianca.tea ? 'SIM' : 'Não', P, colW)
   y += 10
 
   if (crianca.observacao) {
@@ -341,7 +338,7 @@ function FichaPadrinhoCard({
               <td style={{ padding: '4px 0' }}><strong>Sexo:</strong> {crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'}</td>
             </tr>
             <tr>
-              <td style={{ padding: '4px 0' }}><strong>Idade na festa:</strong> {idade}</td>
+              <td style={{ padding: '4px 0' }}><strong>Idade:</strong> {idade}</td>
               <td style={{ padding: '4px 0' }}><strong>Nascimento:</strong> {crianca.dataNascimento ? formatDate(crianca.dataNascimento) : '-'}</td>
             </tr>
             <tr>
@@ -350,7 +347,7 @@ function FichaPadrinhoCard({
             </tr>
             <tr>
               <td style={{ padding: '4px 0' }}><strong>Calçado:</strong> {crianca.tamCalcado || '-'}</td>
-              <td style={{ padding: '4px 0' }}><strong>TEA:</strong> {crianca.tea ? '🧩 Sim' : 'Não'}</td>
+              <td style={{ padding: '4px 0' }}><strong>TEA:</strong> {crianca.tea ? 'SIM' : 'Não'}</td>
             </tr>
           </tbody>
         </table>
@@ -397,11 +394,11 @@ function montaTextoWhatsApp(crianca: Crianca, idade: string, ano: number): strin
   text += `*Ficha:* ${crianca.idCrianca}\n`
   text += `*Nome:* ${crianca.nomeCompleto}\n`
   text += `*Sexo:* ${crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'}\n`
-  text += `*Idade na festa:* ${idade}\n`
+  text += `*Idade:* ${idade}\n`
   text += `*Camisa:* ${crianca.tamCamiseta || '-'}\n`
   text += `*Calça:* ${crianca.tamCalca || '-'}\n`
   text += `*Calçado:* ${crianca.tamCalcado || '-'}\n`
-  text += `*TEA:* ${crianca.tea ? '🧩 Sim' : 'Não'}\n\n`
+  text += `*TEA:* ${crianca.tea ? 'SIM' : 'Não'}\n\n`
   text += `*🎁 A sacolinha deve conter:*\n`
   text += `• Conjunto de roupa nova\n`
   text += `• Calçado novo\n`
