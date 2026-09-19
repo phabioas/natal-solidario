@@ -72,8 +72,6 @@ export default function App() {
         <Route path="fichas/editar/:fichaId" element={<CadastroFichaPage />} />
         <Route path="fichas/imprimir" element={<FichaPrintPage />} />
         <Route path="fichas/imprimir/:fichaId" element={<FichaPrintPage />} />
-        <Route path="apadrinhamento/lista" element={<ListaApadrinhamentoPrintPage />} />
-        <Route path="apadrinhamento/ficha/:criancaId" element={<FichaPadrinhoPage />} />
         <Route path="importacao" element={<ImportacaoPage />} />
         <Route path="contatos" element={<ContatosPage />} />
         <Route path="apadrinhamento" element={<ApadrinhamentoPage />} />
@@ -82,6 +80,8 @@ export default function App() {
         <Route path="relatorios" element={<RelatoriosPage />} />
         <Route path="usuarios" element={<UsuariosPage />} />
       </Route>
+      <Route path="apadrinhamento/lista" element={<ListaApadrinhamentoPrintPage />} />
+      <Route path="apadrinhamento/ficha/:criancaId" element={<FichaPadrinhoPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -59,29 +59,38 @@ export function FichaPadrinhoPage() {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
+        logging: false,
       })
-      canvas.toBlob(async (blob) => {
-        if (!blob) return
-        const file = new File([blob], `ficha-${crianca.idCrianca.replace('/', '-')}.png`, { type: 'image/png' })
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: `Ficha ${crianca.idCrianca}`,
-          })
-          toast.dismiss('img')
-        } else {
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = `ficha-${crianca.idCrianca.replace('/', '-')}.png`
-          a.click()
-          URL.revokeObjectURL(url)
-          toast.success('Imagem baixada. Compartilhe no WhatsApp!', { id: 'img' })
+      const dataUrl = canvas.toDataURL('image/png')
+
+      // Tenta compartilhar como arquivo (mobile)
+      if (navigator.canShare) {
+        try {
+          const res = await fetch(dataUrl)
+          const blob = await res.blob()
+          const file = new File([blob], `ficha-${crianca.idCrianca.replace('/', '-')}.png`, { type: 'image/png' })
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: `Ficha ${crianca.idCrianca}`,
+            })
+            toast.dismiss('img')
+            return
+          }
+        } catch {
+          // User cancelou ou não suporta - cai pro download
         }
-      }, 'image/png')
+      }
+
+      // Fallback: download da imagem
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = `ficha-${crianca.idCrianca.replace('/', '-')}.png`
+      a.click()
+      toast.success('Imagem baixada! Compartilhe no WhatsApp.', { id: 'img' })
     } catch (err) {
-      console.error(err)
-      toast.error('Erro ao gerar imagem', { id: 'img' })
+      console.error('Erro ao gerar imagem:', err)
+      toast.error('Erro ao gerar imagem. Use o botão WhatsApp.', { id: 'img' })
     }
   }
 
@@ -158,16 +167,26 @@ function FichaPadrinhoCard({
         <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px', borderBottom: '1px solid #ddd', paddingBottom: '4px' }}>
           Dados da Criança
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px', fontSize: '15px' }}>
-          <div><strong>Nome:</strong> {crianca.nomeCompleto}</div>
-          <div><strong>Sexo:</strong> {crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'}</div>
-          <div><strong>Idade na festa:</strong> {idade}</div>
-          <div><strong>Nascimento:</strong> {crianca.dataNascimento ? formatDate(crianca.dataNascimento) : '-'}</div>
-          <div><strong>Camisa:</strong> {crianca.tamCamiseta || '-'}</div>
-          <div><strong>Calça:</strong> {crianca.tamCalca || '-'}</div>
-          <div><strong>Calçado:</strong> {crianca.tamCalcado || '-'}</div>
-          <div><strong>TEA:</strong> {crianca.tea ? '🧩 Sim' : 'Não'}</div>
-        </div>
+        <table style={{ width: '100%', fontSize: '15px', borderCollapse: 'collapse' }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: '4px 0' }}><strong>Nome:</strong> {crianca.nomeCompleto}</td>
+              <td style={{ padding: '4px 0' }}><strong>Sexo:</strong> {crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'}</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '4px 0' }}><strong>Idade na festa:</strong> {idade}</td>
+              <td style={{ padding: '4px 0' }}><strong>Nascimento:</strong> {crianca.dataNascimento ? formatDate(crianca.dataNascimento) : '-'}</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '4px 0' }}><strong>Camisa:</strong> {crianca.tamCamiseta || '-'}</td>
+              <td style={{ padding: '4px 0' }}><strong>Calça:</strong> {crianca.tamCalca || '-'}</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '4px 0' }}><strong>Calçado:</strong> {crianca.tamCalcado || '-'}</td>
+              <td style={{ padding: '4px 0' }}><strong>TEA:</strong> {crianca.tea ? '🧩 Sim' : 'Não'}</td>
+            </tr>
+          </tbody>
+        </table>
         {crianca.observacao && (
           <div style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
             <strong>Obs.:</strong> {crianca.observacao}
