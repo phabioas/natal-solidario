@@ -134,7 +134,7 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 ### Entregue
 
 - Menu administrativo em formato drawer no celular.
-- Telas de Dashboard, Fichas, Apadrinhamento, Sacolas, Check-in, Contatos, Usuários, Campanhas e Relatórios adaptadas para mobile com cards, filtros recolhíveis e ações touch-friendly.
+- Telas de Dashboard, Fichas, Apadrinhamento, Sacolas, Check-in, Contatos, Usuários, Campanhas, Relatórios e ficha individual adaptadas para mobile com cards, filtros recolhíveis e ações touch-friendly.
 - Geração de imagem da ficha via Canvas, sem dependência de captura do DOM.
 - Compartilhamento e download da ficha individual.
 
@@ -150,8 +150,8 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 
 ### Pendente
 
-- **Concluir o ajuste mobile da ficha individual** e fazer uma revisão visual geral em celulares reais.
-- Investigar um caso em que o primeiro login por convite permaneceu em “Carregando...” até a atualização manual da página. O drawer e as telas de Fichas, Apadrinhamento, Sacolas e Check-in já foram adaptados.
+- Fazer uma revisão visual geral em celulares reais, especialmente nas larguras de 320 px e 375 px.
+- Monitorar o primeiro login por convite após a correção do vínculo automático por UID; o caso anterior de “Carregando...” ocorreu antes dessa correção. O drawer e as telas de Fichas, Apadrinhamento, Sacolas e Check-in já foram adaptados.
 
 ### Removido após a carga inicial
 

@@ -83,34 +83,34 @@ export function FichaPadrinhoPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="no-print sticky top-0 z-10 border-b bg-white p-4 shadow-sm">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
+      <div className="no-print sticky top-0 z-10 border-b bg-white p-2 shadow-sm sm:p-4">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-2">
+          <Button variant="ghost" className="h-11 w-11 shrink-0 p-0 sm:w-auto sm:px-3" onClick={() => navigate(-1)} aria-label="Voltar" title="Voltar">
+            <ArrowLeft className="h-5 w-5 sm:mr-2 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Voltar</span>
           </Button>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleShareWhatsApp}>
-              <Share2 className="mr-2 h-4 w-4" />
-              WhatsApp
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button variant="outline" className="h-11 w-11 p-0 sm:w-auto sm:px-3" onClick={handleShareWhatsApp} aria-label="Enviar texto pelo WhatsApp" title="WhatsApp">
+              <Share2 className="h-5 w-5 sm:mr-2 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">WhatsApp</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleSaveImage}>
-              <Download className="mr-2 h-4 w-4" />
-              Salvar
+            <Button variant="outline" className="h-11 w-11 p-0 sm:w-auto sm:px-3" onClick={handleSaveImage} aria-label="Salvar imagem" title="Salvar imagem">
+              <Download className="h-5 w-5 sm:mr-2 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Salvar</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleShareImage}>
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartilhar
+            <Button variant="outline" className="h-11 w-11 p-0 sm:w-auto sm:px-3" onClick={handleShareImage} aria-label="Compartilhar imagem" title="Compartilhar imagem">
+              <Share2 className="h-5 w-5 sm:mr-2 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Compartilhar</span>
             </Button>
-            <Button size="sm" onClick={() => window.print()}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimir
+            <Button className="h-11 w-11 p-0 sm:w-auto sm:px-3" onClick={() => window.print()} aria-label="Imprimir ficha" title="Imprimir ficha">
+              <Printer className="h-5 w-5 sm:mr-2 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Imprimir</span>
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-2xl p-4 print:p-0">
+      <div className="mx-auto max-w-2xl p-2 sm:p-4 print:p-0">
         <div className="print-area">
           <FichaPadrinhoCard
             crianca={crianca}
@@ -207,31 +207,18 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
 
   const colW = (W - P * 2) / 2
   const sexo = crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'
-  const nasc = crianca.dataNascimento ? formatDate(crianca.dataNascimento) : '-'
 
   labelValue('Nome:', crianca.nomeCompleto, P, W - P * 2)
   y += 28
   labelValue('Sexo:', sexo, P, colW)
   labelValue('Idade:', idade, P + colW, colW)
   y += 28
-  labelValue('Nascimento:', nasc, P, colW)
-  labelValue('Camisa:', crianca.tamCamiseta || '-', P + colW, colW)
+  labelValue('Camisa:', crianca.tamCamiseta || '-', P, colW)
+  labelValue('Calça:', crianca.tamCalca || '-', P + colW, colW)
   y += 28
-  labelValue('Calça:', crianca.tamCalca || '-', P, colW)
-  labelValue('Calçado:', crianca.tamCalcado || '-', P + colW, colW)
-  y += 28
-  labelValue('TEA:', crianca.tea ? 'SIM' : 'Não', P, colW)
-  y += 30
-
-  if (crianca.observacao) {
-    ctx.font = '14px system-ui, sans-serif'
-    ctx.fillStyle = '#666'
-    ctx.textAlign = 'left'
-    const obs = `Obs.: ${crianca.observacao}`
-    ctx.fillText(obs, P, y, W - P * 2)
-    y += 24
-  }
-  y += 16
+  labelValue('Calçado:', crianca.tamCalcado || '-', P, colW)
+  labelValue('TEA:', crianca.tea ? 'SIM' : 'Não', P + colW, colW)
+  y += 46
 
   // Sacolinha box
   const sacH = 130
@@ -315,7 +302,7 @@ function FichaPadrinhoCard({
   campanhaNome: string
 }) {
   return (
-    <div style={{ background: '#fff', padding: '32px', fontFamily: 'system-ui, sans-serif', color: '#333' }}>
+    <div className="p-4 sm:p-8" style={{ background: '#fff', fontFamily: 'system-ui, sans-serif', color: '#333' }}>
       <div style={{ textAlign: 'center', borderBottom: '3px solid #16a34a', paddingBottom: '16px', marginBottom: '24px' }}>
         <div style={{ fontSize: '14px', color: '#666' }}>Grupo Espírita Trabalhadores de Jesus</div>
         <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#16a34a' }}>★ Natal Solidário {ano}</div>
@@ -332,31 +319,15 @@ function FichaPadrinhoCard({
         <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px', borderBottom: '1px solid #ddd', paddingBottom: '4px' }}>
           Dados da Criança
         </div>
-        <table style={{ width: '100%', fontSize: '15px', borderCollapse: 'collapse' }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: '4px 0' }}><strong>Nome:</strong> {crianca.nomeCompleto}</td>
-              <td style={{ padding: '4px 0' }}><strong>Sexo:</strong> {crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '4px 0' }}><strong>Idade:</strong> {idade}</td>
-              <td style={{ padding: '4px 0' }}><strong>Nascimento:</strong> {crianca.dataNascimento ? formatDate(crianca.dataNascimento) : '-'}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '4px 0' }}><strong>Camisa:</strong> {crianca.tamCamiseta || '-'}</td>
-              <td style={{ padding: '4px 0' }}><strong>Calça:</strong> {crianca.tamCalca || '-'}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '4px 0' }}><strong>Calçado:</strong> {crianca.tamCalcado || '-'}</td>
-              <td style={{ padding: '4px 0' }}><strong>TEA:</strong> {crianca.tea ? 'SIM' : 'Não'}</td>
-            </tr>
-          </tbody>
-        </table>
-        {crianca.observacao && (
-          <div style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
-            <strong>Obs.:</strong> {crianca.observacao}
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 sm:text-[15px]">
+          <div className="sm:col-span-2"><strong>Nome:</strong> {crianca.nomeCompleto}</div>
+          <div><strong>Sexo:</strong> {crianca.sexo === 'M' ? '♂ Masculino' : '♀ Feminino'}</div>
+          <div><strong>Idade:</strong> {idade}</div>
+          <div><strong>Camisa:</strong> {crianca.tamCamiseta || '-'}</div>
+          <div><strong>Calça:</strong> {crianca.tamCalca || '-'}</div>
+          <div><strong>Calçado:</strong> {crianca.tamCalcado || '-'}</div>
+          <div><strong>TEA:</strong> {crianca.tea ? 'SIM' : 'Não'}</div>
+        </div>
       </div>
 
       <div style={{ background: '#f0fdf4', border: '1px solid #16a34a', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
@@ -408,12 +379,6 @@ function montaTextoWhatsApp(crianca: Crianca, idade: string, ano: number): strin
   text += `*⏰ Entregar até 06/12/${ano}*\n\n`
   text += `📞 WhatsApp: (11) 98117-6718`
   return text
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('pt-BR')
 }
 
 function downloadImage(dataUrl: string, idCrianca: string) {
