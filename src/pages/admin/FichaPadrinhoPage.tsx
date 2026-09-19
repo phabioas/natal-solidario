@@ -161,8 +161,9 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
 
   // Header
   centerText('Grupo Espírita Trabalhadores de Jesus', 14, '#666')
-  centerText(`★ Natal Solidário ${ano}`, 28, '#16a34a', true)
   y += 10
+  centerText(`★ Natal Solidário ${ano}`, 28, '#16a34a', true)
+  y += 14
   // Green line
   ctx.strokeStyle = '#16a34a'
   ctx.lineWidth = 3
@@ -220,7 +221,7 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
   labelValue('Calçado:', crianca.tamCalcado || '-', P + colW, colW)
   y += 28
   labelValue('TEA:', crianca.tea ? 'SIM' : 'Não', P, colW)
-  y += 10
+  y += 30
 
   if (crianca.observacao) {
     ctx.font = '14px system-ui, sans-serif'
