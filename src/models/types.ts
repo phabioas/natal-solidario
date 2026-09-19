@@ -151,5 +151,5 @@ export function derivarOrigem(numeroFicha: number, origens: Origem[]): string {
 }
 
 export function gerarIdCrianca(numeroFicha: string, sequencia: number): string {
-  return `${numeroFicha}${sequencia.toString().padStart(2, '0')}`
+  return `${numeroFicha}/${sequencia.toString().padStart(2, '0')}`
 }

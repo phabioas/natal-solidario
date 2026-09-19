@@ -1,17 +1,19 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCampanha } from '@/contexts/CampanhaContext'
 import { subscribeFichas, subscribeContatos, apadrinharCrianca, desApadrinharCrianca } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Search, Heart, X } from 'lucide-react'
+import { Search, Heart, X, FileText, Share2 } from 'lucide-react'
 import type { Ficha, Contato, Crianca } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 import { toast } from 'sonner'
 
 export function ApadrinhamentoPage() {
   const { campanha } = useCampanha()
+  const navigate = useNavigate()
   const [fichas, setFichas] = useState<Ficha[]>([])
   const [contatos, setContatos] = useState<Contato[]>([])
   const [busca, setBusca] = useState('')
@@ -45,6 +47,13 @@ export function ApadrinhamentoPage() {
   return (
     <div className="p-8">
       <h1 className="mb-6 text-3xl font-bold">Apadrinhamento</h1>
+
+      <div className="mb-4 flex gap-3">
+        <Button variant="outline" onClick={() => navigate('/apadrinhamento/lista')}>
+          <FileText className="mr-2 h-4 w-4" />
+          Lista de Disponíveis (WhatsApp)
+        </Button>
+      </div>
 
       {/* Filtros */}
       <div className="mb-4 flex flex-wrap gap-3">
@@ -99,30 +108,42 @@ export function ApadrinhamentoPage() {
                   )}
                 </td>
                 <td className="p-3 text-right">
-                  {crianca.apadrinhamento ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600"
-                      onClick={() => {
-                        if (confirm(`Desfazer apadrinhamento de ${crianca.nomeCompleto}?`)) {
-                          desApadrinharCrianca(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca)
-                            .then(() => toast.success('Apadrinhamento desfeito'))
-                        }
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowApadrinhar({ ficha, crianca })}
-                    >
-                      <Heart className="mr-1 h-4 w-4" />
-                      Apadrinhar
-                    </Button>
-                  )}
+                  <div className="flex justify-end gap-1">
+                    {crianca.apadrinhamento && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/apadrinhamento/ficha/${crianca.idCrianca}`)}
+                        title="Ficha do Padrinho"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {crianca.apadrinhamento ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600"
+                        onClick={() => {
+                          if (confirm(`Desfazer apadrinhamento de ${crianca.nomeCompleto}?`)) {
+                            desApadrinharCrianca(campanha.id, ficha.id, ficha.criancas, crianca.idCrianca)
+                              .then(() => toast.success('Apadrinhamento desfeito'))
+                          }
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowApadrinhar({ ficha, crianca })}
+                      >
+                        <Heart className="mr-1 h-4 w-4" />
+                        Apadrinhar
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
