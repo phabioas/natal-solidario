@@ -78,7 +78,7 @@ Vá em **Usuários** → **Autorizar Email**:
 - Nome
 - Perfil: **Equipe**
 
-Ela terá acesso ao fluxo operacional: fichas, apadrinhamento, sacolas, contatos, check-in, relatórios e impressões.
+Ela terá acesso ao fluxo operacional: fichas, apadrinhamento, sacolas, contatos, check-in, relatórios e impressões. O convite fica pendente até o primeiro login Google; nesse momento, o sistema o vincula automaticamente ao UID da conta.
 
 ## Estrutura do projeto
 

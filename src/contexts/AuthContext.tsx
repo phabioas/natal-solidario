@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
 import { auth, clearLocalFirestoreCache, googleProvider } from '@/lib/firebase'
-import { getUsuario } from '@/services/firestore'
+import { ativarConvite, getConvite, getUsuario } from '@/services/firestore'
 import type { Usuario } from '@/models/types'
 
 interface AuthContextValue {
@@ -26,19 +26,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(firebaseUser)
       setError(null)
 
-      if (firebaseUser) {
-        const userProfile = await getUsuario(firebaseUser.uid)
-        if (!userProfile) {
-          setError('Seu email não está autorizado. Peça ao administrador para liberar seu acesso.')
-          await signOut(auth)
-          setUsuario(null)
+      try {
+        if (firebaseUser) {
+          let userProfile = await getUsuario(firebaseUser.uid)
+          if (!userProfile && firebaseUser.email) {
+            const convite = await getConvite(firebaseUser.email)
+            if (convite) userProfile = await ativarConvite(firebaseUser.uid, convite)
+          }
+          if (!userProfile) {
+            setError('Seu email não está autorizado. Peça ao administrador para liberar seu acesso.')
+            await signOut(auth)
+            setUsuario(null)
+          } else {
+            setUsuario(userProfile)
+          }
         } else {
-          setUsuario(userProfile)
+          setUsuario(null)
         }
-      } else {
+      } catch (err) {
+        console.error(err)
+        setError('Não foi possível validar seu acesso. Tente novamente.')
         setUsuario(null)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
     return unsub
   }, [])

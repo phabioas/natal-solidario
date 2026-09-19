@@ -35,6 +35,15 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function validConvite(data, email) {
+      return data.keys().hasOnly(['email', 'nome', 'role', 'createdAt']) &&
+             data.email == email &&
+             data.email is string && data.email.size() > 3 && data.email.size() <= 254 &&
+             data.nome is string && data.nome.size() > 0 && data.nome.size() <= 120 &&
+             validRole(data.role) &&
+             data.createdAt is timestamp;
+    }
+
     function validCampanha(data) {
       return data.keys().hasOnly(['ano', 'nome', 'dataEvento', 'localEvento', 'ativa', 'origens', 'createdAt']) &&
              data.ano is int && data.ano >= 2020 && data.ano <= 2100 &&
@@ -85,10 +94,29 @@ service cloud.firestore {
     match /usuarios/{uid} {
       allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow list: if isAdmin();
-      allow create: if isAdmin() && validUsuario(request.resource.data);
+      allow create: if (isAdmin() && validUsuario(request.resource.data)) ||
+                    (isSignedIn() && request.auth.uid == uid &&
+                     request.auth.token.email_verified == true &&
+                     request.resource.data.email == request.auth.token.email &&
+                     exists(/databases/$(database)/documents/convites/$(request.auth.token.email)) &&
+                     request.resource.data.nome == get(/databases/$(database)/documents/convites/$(request.auth.token.email)).data.nome &&
+                     request.resource.data.role == get(/databases/$(database)/documents/convites/$(request.auth.token.email)).data.role &&
+                     validUsuario(request.resource.data));
       allow update: if isAdmin() && validUsuario(request.resource.data) &&
                     request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isAdmin() && request.auth.uid != uid;
+    }
+
+    match /convites/{email} {
+      allow get: if isSignedIn() && request.auth.token.email_verified == true &&
+                 request.auth.token.email == email;
+      allow list: if isAdmin();
+      allow create: if isAdmin() && validConvite(request.resource.data, email);
+      allow update: if isAdmin() && validConvite(request.resource.data, email) &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin() ||
+                    (isSignedIn() && request.auth.token.email == email &&
+                     exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)));
     }
 
     match /campanhas/{campanhaId} {

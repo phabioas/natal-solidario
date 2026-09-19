@@ -24,7 +24,7 @@ Login via Google (Firebase Auth). Controle de acesso por whitelist de emails na 
 - **Admin** (gestores): fluxo operacional completo e acesso às configurações de campanhas e usuários.
 - **Equipe** (voluntários autorizados): acesso ao fluxo operacional completo — fichas, apadrinhamento, sacolas, contatos, check-in, relatórios e impressões.
 
-O admin define o perfil ao autorizar um email. Somente admins alteram campanhas e a whitelist de usuários.
+O admin define o perfil ao autorizar um email. A autorização é armazenada como convite pendente e vinculada automaticamente ao UID da conta no primeiro login Google. Somente admins alteram campanhas e a whitelist de usuários.
 
 ### RF02 — Gestão de Campanhas / Multi-ano (Must)
 Criar, listar e ativar campanhas anuais (ex: "Natal Solidário 2026"). Cada campanha tem ano, nome, data e local do evento, e está ativa ou não. A campanha ativa é o contexto padrão de todas as operações. Dados de campanhas anteriores são preservados para consulta e comparação.

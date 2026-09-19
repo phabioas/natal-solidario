@@ -18,6 +18,7 @@ import type {
   Ficha,
   Contato,
   Usuario,
+  ConviteUsuario,
   Origem,
   Crianca,
   SacolaStatus,
@@ -208,6 +209,47 @@ export async function updateUsuario(uid: string, data: Partial<Usuario>): Promis
 
 export async function deleteUsuario(uid: string): Promise<void> {
   await deleteDoc(doc(db, 'usuarios', uid))
+}
+
+function conviteId(email: string): string {
+  return email.trim().toLowerCase()
+}
+
+export async function getConvite(email: string): Promise<ConviteUsuario | null> {
+  const snap = await getDoc(doc(db, 'convites', conviteId(email)))
+  if (!snap.exists()) return null
+  return { id: snap.id, ...(snap.data() as Omit<ConviteUsuario, 'id'>) }
+}
+
+export function subscribeConvites(callback: (convites: ConviteUsuario[]) => void) {
+  return onSnapshot(collection(db, 'convites'), (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<ConviteUsuario, 'id'>) })))
+  })
+}
+
+export async function createConvite(data: Omit<ConviteUsuario, 'id' | 'createdAt'>): Promise<void> {
+  const email = conviteId(data.email)
+  await setDoc(doc(db, 'convites', email), { ...data, email, createdAt: serverTimestamp() })
+}
+
+export async function updateConvite(email: string, data: Partial<ConviteUsuario>): Promise<void> {
+  await updateDoc(doc(db, 'convites', conviteId(email)), data as never)
+}
+
+export async function deleteConvite(email: string): Promise<void> {
+  await deleteDoc(doc(db, 'convites', conviteId(email)))
+}
+
+export async function ativarConvite(uid: string, convite: ConviteUsuario): Promise<Usuario> {
+  const usuario = {
+    email: convite.email,
+    nome: convite.nome,
+    role: convite.role,
+    createdAt: serverTimestamp(),
+  }
+  await setDoc(doc(db, 'usuarios', uid), usuario)
+  await deleteDoc(doc(db, 'convites', convite.id))
+  return { id: uid, email: convite.email, nome: convite.nome, role: convite.role, createdAt: null }
 }
 
 // ─── Apadrinhamento ─────────────────────────────────────

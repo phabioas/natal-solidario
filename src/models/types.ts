@@ -121,6 +121,14 @@ export interface Usuario {
   createdAt: Timestamp | null
 }
 
+export interface ConviteUsuario {
+  id: string // email normalizado
+  email: string
+  nome: string
+  role: UserRole
+  createdAt: Timestamp | null
+}
+
 // ─── Helpers ────────────────────────────────────────────
 
 export const SACOLA_STATUS_LABELS: Record<SacolaStatus, string> = {

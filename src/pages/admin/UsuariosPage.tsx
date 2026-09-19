@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { subscribeUsuarios, createUsuario, updateUsuario, deleteUsuario } from '@/services/firestore'
+import { subscribeUsuarios, subscribeConvites, createConvite, updateConvite, deleteConvite, updateUsuario, deleteUsuario } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash2, X } from 'lucide-react'
-import type { Usuario, UserRole } from '@/models/types'
+import type { Usuario, ConviteUsuario, UserRole } from '@/models/types'
 import { toast } from 'sonner'
 
 export function UsuariosPage() {
   const { usuario: currentUser } = useAuth()
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const [convites, setConvites] = useState<ConviteUsuario[]>([])
   const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
-    return subscribeUsuarios(setUsuarios)
+    const unsubUsuarios = subscribeUsuarios(setUsuarios)
+    const unsubConvites = subscribeConvites(setConvites)
+    return () => { unsubUsuarios(); unsubConvites() }
   }, [])
 
   return (
@@ -31,6 +34,42 @@ export function UsuariosPage() {
       <p className="mb-4 text-sm text-muted-foreground">
         Emails autorizados a acessar o sistema. O usuário deve fazer login com Google com este email.
       </p>
+
+      {convites.length > 0 && (
+        <div className="mb-6 rounded-xl border border-yellow-300 bg-yellow-50 p-4">
+          <h2 className="font-semibold text-yellow-900">Convites pendentes</h2>
+          <p className="mb-3 text-xs text-yellow-800">O acesso será ativado automaticamente no primeiro login Google.</p>
+          <div className="space-y-2">
+            {convites.map((convite) => (
+              <div key={convite.id} className="flex flex-col gap-2 rounded-lg bg-white p-3 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{convite.nome}</div>
+                  <div className="break-all text-sm text-muted-foreground">{convite.email}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    className="h-11 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm sm:w-32"
+                    value={convite.role}
+                    onChange={(e) => updateConvite(convite.email, { role: e.target.value as UserRole }).then(() => toast.success('Perfil do convite atualizado'))}
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="equipe">Equipe</option>
+                  </select>
+                  <Button
+                    variant="outline"
+                    className="h-11 w-11 shrink-0 p-0 text-red-600"
+                    onClick={() => deleteConvite(convite.email).then(() => toast.success('Convite removido'))}
+                    aria-label={`Remover convite de ${convite.nome}`}
+                    title="Remover convite"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="hidden overflow-x-auto rounded-lg border md:block">
         <table className="w-full text-sm">
@@ -144,10 +183,8 @@ export function UsuariosPage() {
         <UsuarioForm
           onClose={() => setShowForm(false)}
           onSave={async (data) => {
-            // Note: uid is set when user first logs in. For now, use email as placeholder.
-            // The admin creates the record; when the user logs in with Google, we match by email.
-            await createUsuario({ ...data }, data.email.replace(/[^a-zA-Z0-9]/g, '_'))
-            toast.success('Email autorizado')
+            await createConvite(data)
+            toast.success('Convite criado. O acesso será ativado no primeiro login.')
             setShowForm(false)
           }}
         />

@@ -142,11 +142,51 @@ describe('equipe', () => {
   })
 })
 
+describe('convite por email', () => {
+  it('permite que o convidado ative o próprio perfil no primeiro login', async () => {
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'convites/novo@gmail.com'), {
+        email: 'novo@gmail.com', nome: 'Novo Usuário', role: 'equipe', createdAt: Timestamp.now(),
+      })
+    })
+    const db = env.authenticatedContext('novo-uid', { email: 'novo@gmail.com', email_verified: true }).firestore()
+    await assertSucceeds(getDoc(doc(db, 'convites/novo@gmail.com')))
+    await assertSucceeds(setDoc(doc(db, 'usuarios/novo-uid'), {
+      email: 'novo@gmail.com', nome: 'Novo Usuário', role: 'equipe', createdAt: Timestamp.now(),
+    }))
+    await assertSucceeds(deleteDoc(doc(db, 'convites/novo@gmail.com')))
+  })
+
+  it('rejeita usuário não convidado e troca de perfil no cadastro', async () => {
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'convites/novo@gmail.com'), {
+        email: 'novo@gmail.com', nome: 'Novo Usuário', role: 'equipe', createdAt: Timestamp.now(),
+      })
+    })
+    const db = env.authenticatedContext('novo-uid', { email: 'novo@gmail.com', email_verified: true }).firestore()
+    await assertFails(setDoc(doc(db, 'usuarios/novo-uid'), {
+      email: 'novo@gmail.com', nome: 'Novo Usuário', role: 'admin', createdAt: Timestamp.now(),
+    }))
+    const outroDb = env.authenticatedContext('outro-uid', { email: 'outro@gmail.com', email_verified: true }).firestore()
+    await assertFails(getDoc(doc(outroDb, 'convites/novo@gmail.com')))
+  })
+})
+
 describe('admin', () => {
   it('lista usuários e gerencia campanhas', async () => {
     const db = env.authenticatedContext('admin').firestore()
     await assertSucceeds(getDocs(collection(db, 'usuarios')))
     await assertSucceeds(updateDoc(doc(db, 'campanhas/campanha-2026'), { nome: 'Campanha Atualizada' }))
+  })
+
+  it('cria convite válido e rejeita convite com email divergente', async () => {
+    const db = env.authenticatedContext('admin').firestore()
+    await assertSucceeds(setDoc(doc(db, 'convites/convidado@gmail.com'), {
+      email: 'convidado@gmail.com', nome: 'Convidado', role: 'equipe', createdAt: Timestamp.now(),
+    }))
+    await assertFails(setDoc(doc(db, 'convites/outro@gmail.com'), {
+      email: 'divergente@gmail.com', nome: 'Outro', role: 'equipe', createdAt: Timestamp.now(),
+    }))
   })
 
   it('rejeita perfil inválido e não permite autoexclusão', async () => {
