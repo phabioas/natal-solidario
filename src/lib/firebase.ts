@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore'
+import { clearIndexedDbPersistence, getFirestore, terminate } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAJbBO-Lbybse2SFuLQyvuzzBSYBPiYMq4',
@@ -16,11 +16,13 @@ export const auth = getAuth(app)
 export const googleProvider = new GoogleAuthProvider()
 export const db = getFirestore(app)
 
-// Enable offline persistence for check-in resilience (NRF02)
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    console.warn('Firestore offline persistence: multiple tabs open')
-  } else if (err.code === 'unimplemented') {
-    console.warn('Firestore offline persistence: not supported in this browser')
+// Dados pessoais permanecem apenas na memória da sessão. Ao sair, remove também
+// qualquer cache IndexedDB criado por versões anteriores da aplicação.
+export async function clearLocalFirestoreCache(): Promise<void> {
+  try {
+    await terminate(db)
+    await clearIndexedDbPersistence(db)
+  } catch (err) {
+    console.warn('Não foi possível limpar completamente o cache local do Firestore', err)
   }
-})
+}

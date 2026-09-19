@@ -145,6 +145,8 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 - Usuários consultam apenas o próprio perfil; admins podem listar a whitelist.
 - As regras possuem testes automatizados executados pelo Firebase Emulator (`npm run test:rules`).
 - A dependência vulnerável `xlsx` foi removida e o `npm audit` não aponta vulnerabilidades conhecidas.
+- O cache persistente do Firestore foi desabilitado; no logout, o app tenta apagar caches locais criados por versões anteriores.
+- Firebase Hosting envia CSP, HSTS, proteção contra framing, política de referência e restrições de permissões do navegador.
 
 ### Pendente
 

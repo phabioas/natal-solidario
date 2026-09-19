@@ -178,8 +178,8 @@ O admin pode autorizar/remover emails e definir o perfil (admin ou equipe) de ca
 ### NRF01 — Responsividade (Must)
 App funciona em desktop (uso principal no cadastro/relatórios) e tablet/celular (uso no dia do evento para check-in). Layout adaptativo.
 
-### NRF02 — Offline-tolerant no check-in (Should)
-No dia do evento, o check-in deve tolerar instabilidade de internet. Firestore tem cache offline nativo — garantir que está habilitado.
+### NRF02 — Privacidade no Dispositivo e Tolerância de Rede (Must)
+Dados pessoais não devem permanecer em cache persistente no navegador. O Firestore utiliza somente memória durante a sessão e tenta limpar caches legados no logout. O check-in requer conexão; eventual suporte offline futuro deverá armazenar apenas o mínimo necessário, com expiração e avaliação específica de segurança.
 
 ### NRF03 — Performance (Must)
 Listas de até 500 fichas / 5000 crianças carregam com paginação virtualizada. Busca por nome/CPF/ID é responsiva (< 500ms).
@@ -389,6 +389,9 @@ type SacolaStatus =
 ## Estado da Implementação e Pendências
 
 ### Implementado
+- Firestore Rules testadas no Emulator, com validação de perfil, esquema e limites básicos.
+- Cache persistente do Firestore desabilitado e limpeza local executada no logout.
+- Headers de segurança configurados no Firebase Hosting.
 - Identificador da criança no formato `001/01`.
 - Cálculo de idade para a data da festa.
 - Impressão individual e em lote das fichas cadastrais.

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
-import { auth, googleProvider } from '@/lib/firebase'
+import { auth, clearLocalFirestoreCache, googleProvider } from '@/lib/firebase'
 import { getUsuario } from '@/services/firestore'
 import type { Usuario } from '@/models/types'
 
@@ -57,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth)
     setUser(null)
     setUsuario(null)
+    await clearLocalFirestoreCache()
+    window.location.replace('/')
   }
 
   return (
