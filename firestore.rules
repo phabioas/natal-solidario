@@ -2,8 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     function isAuthorized() {
-      return request.auth != null &&
+      return isSignedIn() &&
              exists(/databases/$(database)/documents/usuarios/$(request.auth.uid));
     }
 
@@ -19,26 +23,95 @@ service cloud.firestore {
       return isAuthorized() && getUserRole() == 'equipe';
     }
 
-    // Cada usuário consulta o próprio perfil; somente admins listam e gerenciam usuários.
+    function validRole(role) {
+      return role == 'admin' || role == 'equipe';
+    }
+
+    function validUsuario(data) {
+      return data.keys().hasOnly(['email', 'nome', 'role', 'createdAt']) &&
+             data.email is string && data.email.size() > 3 && data.email.size() <= 254 &&
+             data.nome is string && data.nome.size() > 0 && data.nome.size() <= 120 &&
+             validRole(data.role) &&
+             data.createdAt is timestamp;
+    }
+
+    function validCampanha(data) {
+      return data.keys().hasOnly(['ano', 'nome', 'dataEvento', 'localEvento', 'ativa', 'origens', 'createdAt']) &&
+             data.ano is int && data.ano >= 2020 && data.ano <= 2100 &&
+             data.nome is string && data.nome.size() > 0 && data.nome.size() <= 150 &&
+             data.dataEvento is timestamp &&
+             data.ativa is bool &&
+             data.localEvento is map &&
+             data.localEvento.keys().hasOnly(['nome', 'endereco', 'cidade', 'cep']) &&
+             data.localEvento.nome is string && data.localEvento.nome.size() <= 150 &&
+             data.localEvento.endereco is string && data.localEvento.endereco.size() <= 200 &&
+             data.localEvento.cidade is string && data.localEvento.cidade.size() <= 100 &&
+             data.localEvento.cep is string && data.localEvento.cep.size() <= 20 &&
+             data.origens is list && data.origens.size() <= 30 &&
+             data.createdAt is timestamp;
+    }
+
+    function validFicha(data, fichaId) {
+      return data.keys().hasOnly([
+               'numeroFicha', 'nomeResponsavel', 'cpfResponsavel', 'contatoResponsavel',
+               'origem', 'qtdeAdultos', 'qtdeCriancas', 'observacao', 'status',
+               'motivoCancelamento', 'dataCancelamento', 'criancas', 'createdAt', 'updatedAt'
+             ]) &&
+             data.numeroFicha is string && data.numeroFicha.matches('^[0-9]{3}$') &&
+             data.numeroFicha == fichaId &&
+             data.nomeResponsavel is string && data.nomeResponsavel.size() > 0 && data.nomeResponsavel.size() <= 200 &&
+             data.cpfResponsavel is string && data.cpfResponsavel.size() <= 30 &&
+             data.contatoResponsavel is string && data.contatoResponsavel.size() <= 30 &&
+             data.origem is string && data.origem.size() > 0 && data.origem.size() <= 100 &&
+             data.qtdeAdultos is int && data.qtdeAdultos >= 0 && data.qtdeAdultos <= 30 &&
+             data.qtdeCriancas is int && data.qtdeCriancas >= 1 && data.qtdeCriancas <= 10 &&
+             data.observacao is string && data.observacao.size() <= 2000 &&
+             (data.status == 'ativa' || data.status == 'cancelada') &&
+             (data.motivoCancelamento == null || (data.motivoCancelamento is string && data.motivoCancelamento.size() <= 500)) &&
+             (data.dataCancelamento == null || data.dataCancelamento is timestamp) &&
+             data.criancas is list && data.criancas.size() >= 1 && data.criancas.size() <= 10 &&
+             data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validContato(data) {
+      return data.keys().hasOnly(['nome', 'telefone', 'email', 'uid', 'createdAt']) &&
+             data.nome is string && data.nome.size() > 0 && data.nome.size() <= 150 &&
+             data.telefone is string && data.telefone.size() <= 30 &&
+             (data.email == null || (data.email is string && data.email.size() <= 254)) &&
+             (data.uid == null || (data.uid is string && data.uid.size() <= 128)) &&
+             data.createdAt is timestamp;
+    }
+
     match /usuarios/{uid} {
-      allow get: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow create: if isAdmin() && validUsuario(request.resource.data);
+      allow update: if isAdmin() && validUsuario(request.resource.data) &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin() && request.auth.uid != uid;
     }
 
     match /campanhas/{campanhaId} {
-      // Toda a equipe precisa conhecer a campanha ativa; configuração é exclusiva do admin.
       allow read: if isAuthorized();
-      allow create, update, delete: if isAdmin();
+      allow create: if isAdmin() && validCampanha(request.resource.data);
+      allow update: if isAdmin() && validCampanha(request.resource.data) &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
 
-      // Fluxo operacional completo para admin e equipe.
       match /fichas/{fichaId} {
-        allow read, create, update: if isAdmin() || isEquipe();
+        allow read: if isAdmin() || isEquipe();
+        allow create: if (isAdmin() || isEquipe()) && validFicha(request.resource.data, fichaId);
+        allow update: if (isAdmin() || isEquipe()) && validFicha(request.resource.data, fichaId) &&
+                      request.resource.data.numeroFicha == resource.data.numeroFicha &&
+                      request.resource.data.createdAt == resource.data.createdAt;
         allow delete: if isAdmin();
       }
 
       match /contatos/{contatoId} {
-        allow read, create, update: if isAdmin() || isEquipe();
+        allow read: if isAdmin() || isEquipe();
+        allow create: if (isAdmin() || isEquipe()) && validContato(request.resource.data);
+        allow update: if (isAdmin() || isEquipe()) && validContato(request.resource.data) &&
+                      request.resource.data.createdAt == resource.data.createdAt;
         allow delete: if isAdmin();
       }
     }

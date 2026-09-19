@@ -26,6 +26,9 @@ npm run dev
 # Build de produção
 npm run build
 
+# Testar as regras do Firestore (requer Java 21+)
+npm run test:rules
+
 # Deploy para Firebase Hosting
 npm run deploy
 ```
@@ -134,6 +137,14 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 - Telas de Fichas, Apadrinhamento, Sacolas e Check-in adaptadas para mobile com cards, filtros recolhíveis e ações touch-friendly.
 - Geração de imagem da ficha via Canvas, sem dependência de captura do DOM.
 - Compartilhamento e download da ficha individual.
+
+### Segurança
+
+- Firestore Rules validam autenticação, perfil, campos permitidos, tipos e limites básicos.
+- Equipe acessa o fluxo operacional, mas não gerencia campanhas, usuários ou exclusões físicas.
+- Usuários consultam apenas o próprio perfil; admins podem listar a whitelist.
+- As regras possuem testes automatizados executados pelo Firebase Emulator (`npm run test:rules`).
+- A dependência vulnerável `xlsx` foi removida e o `npm audit` não aponta vulnerabilidades conhecidas.
 
 ### Pendente
 
