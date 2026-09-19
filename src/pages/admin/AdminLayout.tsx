@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   FolderPlus,
-  FileSpreadsheet,
   Users,
   HeartHandshake,
   Package,
@@ -28,7 +27,6 @@ const navItems = [
   { to: '/contatos', label: 'Contatos', icon: Users },
   { to: '/checkin', label: 'Check-in', icon: ClipboardCheck },
   { to: '/relatorios', label: 'Relatórios', icon: BarChart3 },
-  { to: '/importacao', label: 'Importação', icon: FileSpreadsheet },
   { to: '/campanhas', label: 'Campanhas', icon: TreePine },
   { to: '/usuarios', label: 'Usuários', icon: Settings },
 ]

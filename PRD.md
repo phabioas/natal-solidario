@@ -90,8 +90,8 @@ A interface de cadastro é **prioridade zero** — projetada para uma pessoa com
 
 O admin acessa a mesma página de cadastro mas com funcionalidades extras (editar, deletar, buscar, ver todas as fichas).
 
-### RF05 — Importação via Excel/CSV (Must)
-O admin faz upload de uma planilha (.xlsx ou .csv) para importar fichas em lote na campanha. O app lê, valida (duplicatas, ranges, campos obrigatórios), mostra preview, e importa. Substitui o script `importador_fichas`.
+### RF05 — Migração Inicial de Planilha (Concluído e Removido)
+A planilha existente foi utilizada exclusivamente para a carga inicial, pois o sistema começou a operar durante o período de cadastro. Após a migração, a tela de importação e a dependência de leitura de Excel foram removidas. Todos os novos registros são feitos diretamente no sistema.
 
 ### RF06 — Cadastro de Contatos (Must)
 Contatos são voluntários do GETJ que intermediam o apadrinhamento. O admin cadastra:
@@ -246,8 +246,8 @@ Contatos e padrinhos não logam na fase 1. Contatos têm campo `email` e `uid` (
 ### ADR-05: Status de sacola como enum + observação
 Um campo `status` (enum) + `observacaoConferencia` (texto), em vez de múltiplos booleanos. Facilita filtros, relatórios ("o que falta"), e transições com timestamp.
 
-### ADR-06: Importação no app, não por script
-Upload de planilha pelo admin na própria app. Substitui o `importador_fichas` (que exigia service account e linha de comando). Biblioteca `xlsx` (SheetJS) no client.
+### ADR-06: Importação limitada à migração inicial
+A importação foi uma funcionalidade temporária para carregar a planilha existente durante a implantação. Com a carga inicial concluída, a tela e a biblioteca `xlsx` foram removidas para reduzir superfície de ataque e manutenção. O cadastro passa a ocorrer exclusivamente pelo sistema.
 
 ---
 
@@ -373,7 +373,6 @@ type SacolaStatus =
 | 2 | Dashboard | Visão geral da campanha ativa com KPIs e gráficos **(admin only)** |
 | 3 | Campanhas | Lista de campanhas, criar nova, editar origens, ativar **(admin only)** |
 | 4 | Cadastro de Fichas | **Interface simplificada** para cadastrador. Lista + criar/editar ficha com crianças. Prioridade zero de UX |
-| 5 | Importação | Upload de Excel/CSV, preview, importar para campanha **(admin only)** |
 | 6 | Contatos | Lista CRUD de contatos (voluntários GETJ) **(admin only)** |
 | 7 | Apadrinhamento | Lista de crianças com filtros. Atribuir padrinho + contato. Atualizar status da sacola **(admin only)** |
 | 8 | Sacolas | Visão do ciclo de vida das sacolas. "O que falta" agrupado por contato. Atualizar status em lote **(admin only)** |

@@ -6,7 +6,6 @@ import { AdminLayout } from '@/pages/admin/AdminLayout'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
 import { CampanhasPage } from '@/pages/admin/CampanhasPage'
 import { FichasListPage } from '@/pages/admin/FichasListPage'
-import { ImportacaoPage } from '@/pages/admin/ImportacaoPage'
 import { ContatosPage } from '@/pages/admin/ContatosPage'
 import { ApadrinhamentoPage } from '@/pages/admin/ApadrinhamentoPage'
 import { SacolasPage } from '@/pages/admin/SacolasPage'
@@ -72,7 +71,6 @@ export default function App() {
         <Route path="fichas/editar/:fichaId" element={<CadastroFichaPage />} />
         <Route path="fichas/imprimir" element={<FichaPrintPage />} />
         <Route path="fichas/imprimir/:fichaId" element={<FichaPrintPage />} />
-        <Route path="importacao" element={<ImportacaoPage />} />
         <Route path="contatos" element={<ContatosPage />} />
         <Route path="apadrinhamento" element={<ApadrinhamentoPage />} />
         <Route path="sacolas" element={<SacolasPage />} />

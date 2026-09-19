@@ -77,10 +77,6 @@ Vá em **Usuários** → **Autorizar Email**:
 
 Ela vai fazer login com Google e ir direto para a tela de cadastro de fichas (interface simplificada).
 
-### 6. Importar dados existentes (opcional)
-
-Se já tem dados no Excel, vá em **Importação** → selecione a planilha `.xlsx` → preview → confirmar.
-
 ## Estrutura do projeto
 
 ```
@@ -101,7 +97,7 @@ src/
 
 | Perfil | Acesso |
 |---|---|
-| **Admin** | Dashboard, Fichas, Apadrinhamento, Sacolas, Contatos, Check-in, Relatórios, Importação, Campanhas, Usuários |
+| **Admin** | Dashboard, Fichas, Apadrinhamento, Sacolas, Contatos, Check-in, Relatórios, Campanhas, Usuários |
 | **Cadastrador** | Apenas cadastro de fichas (interface simplificada, sem opções avançadas) |
 
 ## Modelo de dados (Firestore)
@@ -141,6 +137,10 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 ### Pendente
 
 - **Revisar e ajustar o layout geral para mobile**, incluindo páginas, tabelas, filtros, formulários, barras de ações e ficha individual. O drawer já foi adaptado, mas a responsividade completa da aplicação ainda precisa ser validada tela a tela em celulares reais.
+
+### Removido após a carga inicial
+
+- A importação de Excel/CSV foi utilizada somente para migrar os cadastros existentes. Após a carga inicial, a tela e a dependência `xlsx` foram removidas. Novos registros são feitos diretamente no sistema.
 
 ## Fase 2 (futuro)
 
