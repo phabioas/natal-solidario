@@ -113,7 +113,7 @@ export function ApadrinhamentoPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/apadrinhamento/ficha/${crianca.idCrianca}`)}
+                        onClick={() => navigate(`/apadrinhamento/ficha/${encodeURIComponent(crianca.idCrianca)}`)}
                         title="Ficha do Padrinho"
                       >
                         <Share2 className="h-4 w-4" />
