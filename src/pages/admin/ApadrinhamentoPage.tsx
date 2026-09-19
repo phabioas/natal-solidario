@@ -160,9 +160,14 @@ export function ApadrinhamentoPage() {
           contatos={contatos}
           onClose={() => setShowApadrinhar(null)}
           onConfirm={async (padrinho, contatoId, contatoNome) => {
-            await apadrinharCrianca(campanha.id, showApadrinhar.ficha.id, showApadrinhar.ficha.criancas, showApadrinhar.crianca.idCrianca, padrinho, contatoId, contatoNome)
-            toast.success(`${showApadrinhar.crianca.nomeCompleto} apadrinhada!`)
-            setShowApadrinhar(null)
+            try {
+              await apadrinharCrianca(campanha.id, showApadrinhar.ficha.id, showApadrinhar.ficha.criancas, showApadrinhar.crianca.idCrianca, padrinho, contatoId, contatoNome)
+              toast.success(`${showApadrinhar.crianca.nomeCompleto} apadrinhada!`)
+              setShowApadrinhar(null)
+            } catch (err) {
+              console.error(err)
+              toast.error('Erro ao apadrinhar. Tente novamente.')
+            }
           }}
         />
       )}

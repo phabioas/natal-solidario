@@ -232,7 +232,7 @@ export async function apadrinharCrianca(
           status: 'pendente' as SacolaStatus,
           observacaoConferencia: '',
           pasta: '',
-          dataApadrinhada: serverTimestamp() as Timestamp,
+          dataApadrinhada: Timestamp.now(),
           dataEntregue: null,
           dataConferida: null,
           dataNoSalao: null,
@@ -275,7 +275,7 @@ export async function updateSacolaStatus(
       if (observacaoConferencia !== undefined) {
         ap.observacaoConferencia = observacaoConferencia
       }
-      const now = serverTimestamp() as Timestamp
+      const now = Timestamp.now()
       if (status === 'entregue') ap.dataEntregue = now
       if (status === 'conferida') ap.dataConferida = now
       if (status === 'no_salao') ap.dataNoSalao = now
