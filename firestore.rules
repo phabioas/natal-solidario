@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if user is in usuarios collection
+    function isAuthorized() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/usuarios/$(request.auth.uid));
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuthorized() && getUserRole() == 'admin';
+    }
+
+    function isCadastrador() {
+      return isAuthorized() && getUserRole() == 'cadastrador';
+    }
+
+    // usuarios: only admins can read/write
+    match /usuarios/{uid} {
+      allow read: if isAuthorized();
+      allow write: if isAdmin();
+    }
+
+    // campanhas: admins read/write all, cadastradores read active
+    match /campanhas/{campanhaId} {
+      allow read: if isAuthorized();
+      allow write: if isAdmin();
+
+      // fichas: admins full, cadastradores can create/update (cadastro)
+      match /fichas/{fichaId} {
+        allow read: if isAuthorized();
+        allow create, update: if isAdmin() || isCadastrador();
+        allow delete: if isAdmin();
+      }
+
+      // contatos: admins only
+      match /contatos/{contatoId} {
+        allow read, write: if isAdmin();
+      }
+    }
+  }
+}
