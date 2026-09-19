@@ -151,7 +151,7 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 ### Pendente
 
 - Fazer uma revisão visual geral em celulares reais, especialmente nas larguras de 320 px e 375 px.
-- Monitorar o primeiro login por convite após a correção do vínculo automático por UID; o caso anterior de “Carregando...” ocorreu antes dessa correção. O drawer e as telas de Fichas, Apadrinhamento, Sacolas e Check-in já foram adaptados.
+- Validar visualmente o primeiro login por convite em diferentes navegadores. A causa do carregamento infinito foi corrigida fazendo a campanha aguardar a conclusão da autorização. O drawer e as telas de Fichas, Apadrinhamento, Sacolas e Check-in já foram adaptados.
 
 ### Removido após a carga inicial
 

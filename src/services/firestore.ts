@@ -40,7 +40,10 @@ export async function getCampanhaAtiva(): Promise<Campanha | null> {
   return { id: d.id, ...(d.data() as Omit<Campanha, 'id'>) }
 }
 
-export function subscribeCampanhaAtiva(callback: (campanha: Campanha | null) => void) {
+export function subscribeCampanhaAtiva(
+  callback: (campanha: Campanha | null) => void,
+  onError?: (error: Error) => void,
+) {
   const q = query(collection(db, 'campanhas'), where('ativa', '==', true))
   return onSnapshot(q, (snap) => {
     if (snap.empty) {
@@ -49,7 +52,7 @@ export function subscribeCampanhaAtiva(callback: (campanha: Campanha | null) => 
       const d = snap.docs[0]
       callback({ id: d.id, ...(d.data() as Omit<Campanha, 'id'>) })
     }
-  })
+  }, (error) => onError?.(error))
 }
 
 export async function createCampanha(campanha: Omit<Campanha, 'id' | 'createdAt'>): Promise<string> {
