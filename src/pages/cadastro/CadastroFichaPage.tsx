@@ -268,11 +268,11 @@ export function CadastroFichaPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <Label className="mb-1 block text-base">CPF</Label>
+                <Label className="mb-1 block text-base">Documento (CPF ou RG)</Label>
                 <Input
                   value={cpfResponsavel}
                   onChange={(e) => setCpfResponsavel(e.target.value)}
-                  placeholder="00000000000"
+                  placeholder="Digite o CPF ou RG"
                   className="text-lg"
                 />
               </div>

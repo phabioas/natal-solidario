@@ -56,7 +56,7 @@ export function CheckinPage() {
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
         <Input
-          placeholder="Buscar por ID (00101), nome da criança, nome da mãe ou CPF..."
+          placeholder="Buscar por ID (001/01), criança, responsável ou documento..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           className="pl-10 text-lg"

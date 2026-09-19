@@ -141,7 +141,7 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 
 ### Removido após a carga inicial
 
-- A importação de Excel/CSV foi utilizada somente para migrar os cadastros existentes. Após a carga inicial, a tela e a dependência `xlsx` foram removidas. Novos registros são feitos diretamente no sistema.
+- A importação de Excel/CSV foi utilizada somente para migrar os cadastros existentes. Após a carga inicial, a tela e a dependência `xlsx` foram removidas. Uma correção pontual posterior recuperou documento (CPF ou RG) e telefone da aba de responsáveis. Novos registros são feitos diretamente no sistema.
 
 ## Fase 2 (futuro)
 

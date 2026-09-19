@@ -43,7 +43,7 @@ Página de cadastro onde o admin ou cadastrador cria e edita fichas. Cada ficha 
 **Dados da mãe:**
 - Número da ficha (sugerido automaticamente como o próximo disponível da origem, mas editável — não exige ordem sequencial)
 - Nome completo
-- CPF
+- Documento (CPF ou RG; opcional quando não informado)
 - Telefone
 - Quantidade de adultos
 - Observação
@@ -283,7 +283,7 @@ A importação foi uma funcionalidade temporária para carregar a planilha exist
   id: string                    // "001" (document ID = numeroFicha)
   numeroFicha: string           // "001"
   nomeResponsavel: string       // "MONICA DE OLIVEIRA PAULA"
-  cpfResponsavel: string        // "22359084895"
+  cpfResponsavel: string        // CPF ou RG; nome mantido por compatibilidade
   contatoResponsavel: string    // "11920471722" (telefone)
   origem: string                // "Canadá" (derivado)
   qtdeAdultos: number           // 1

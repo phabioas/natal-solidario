@@ -68,7 +68,7 @@ export function FichasListPage() {
           <div className="relative min-w-0 flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
-              placeholder="Buscar ficha, nome, CPF ou criança..."
+              placeholder="Buscar ficha, nome, documento ou criança..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               className="pl-10"
@@ -122,7 +122,7 @@ export function FichasListPage() {
               <th className="p-3 text-left">Ficha</th>
               <th className="p-3 text-left">Mãe</th>
               <th className="p-3 text-left">Origem</th>
-              <th className="p-3 text-left">CPF</th>
+              <th className="p-3 text-left">Documento</th>
               <th className="p-3 text-left">Telefone</th>
               <th className="p-3 text-center">Crianças</th>
               <th className="p-3 text-left">Status</th>
@@ -205,8 +205,8 @@ export function FichasListPage() {
                 <div>{ficha.criancas.length}</div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">CPF</div>
-                <div className="font-mono">{mascararCpf(ficha.cpfResponsavel)}</div>
+                <div className="text-xs text-muted-foreground">Documento</div>
+                <div className="font-mono">{mascararDocumento(ficha.cpfResponsavel)}</div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Telefone</div>
@@ -251,8 +251,9 @@ export function FichasListPage() {
   )
 }
 
-function mascararCpf(cpf: string): string {
-  const digitos = cpf.replace(/\D/g, '')
-  if (digitos.length !== 11) return cpf ? '***.***.***-**' : '-'
-  return `***.***.${digitos.slice(6, 9)}-${digitos.slice(9)}`
+function mascararDocumento(documento: string): string {
+  const valor = documento.trim()
+  if (!valor) return '-'
+  const visiveis = valor.replace(/\s/g, '').slice(-4)
+  return `••••${visiveis}`
 }

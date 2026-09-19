@@ -108,7 +108,7 @@ function FichaPrintCard({
         </h2>
         <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
           <div><span className="font-semibold">Nome:</span> {ficha.nomeResponsavel}</div>
-          <div><span className="font-semibold">CPF:</span> {ficha.cpfResponsavel || '-'}</div>
+          <div><span className="font-semibold">Documento (CPF/RG):</span> {ficha.cpfResponsavel || '-'}</div>
           <div><span className="font-semibold">Telefone:</span> {ficha.contatoResponsavel || '-'}</div>
           <div><span className="font-semibold">Qtd. Adultos:</span> {ficha.qtdeAdultos}</div>
           {ficha.observacao && (
