@@ -83,14 +83,31 @@ export function FichaPadrinhoPage() {
       }
 
       // Fallback: download da imagem
-      const a = document.createElement('a')
-      a.href = dataUrl
-      a.download = `ficha-${crianca.idCrianca.replace('/', '-')}.png`
-      a.click()
+      downloadImage(dataUrl, crianca.idCrianca)
       toast.success('Imagem baixada! Compartilhe no WhatsApp.', { id: 'img' })
     } catch (err) {
       console.error('Erro ao gerar imagem:', err)
       toast.error('Erro ao gerar imagem. Use o botão WhatsApp.', { id: 'img' })
+    }
+  }
+
+  const handleSaveImage = async () => {
+    if (!fichaRef.current) return
+    try {
+      toast.loading('Gerando imagem...', { id: 'img' })
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(fichaRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
+      })
+      const dataUrl = canvas.toDataURL('image/png')
+      downloadImage(dataUrl, crianca.idCrianca)
+      toast.success('Imagem salva!', { id: 'img' })
+    } catch (err) {
+      console.error('Erro ao gerar imagem:', err)
+      toast.error('Erro ao gerar imagem.', { id: 'img' })
     }
   }
 
@@ -102,14 +119,18 @@ export function FichaPadrinhoPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleShareWhatsApp}>
               <Share2 className="mr-2 h-4 w-4" />
               WhatsApp
             </Button>
-            <Button variant="outline" size="sm" onClick={handleShareImage}>
+            <Button variant="outline" size="sm" onClick={handleSaveImage}>
               <Download className="mr-2 h-4 w-4" />
-              Imagem
+              Salvar
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleShareImage}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Compartilhar
             </Button>
             <Button size="sm" onClick={() => window.print()}>
               <Printer className="mr-2 h-4 w-4" />
@@ -253,4 +274,11 @@ function formatDate(iso: string): string {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return iso
   return d.toLocaleDateString('pt-BR')
+}
+
+function downloadImage(dataUrl: string, idCrianca: string) {
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = `ficha-${idCrianca.replace('/', '-')}.png`
+  a.click()
 }
