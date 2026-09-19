@@ -5,7 +5,7 @@ import { subscribeFichas } from '@/services/firestore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { FolderPlus, HeartHandshake, Package, Users, TrendingUp } from 'lucide-react'
+import { FolderPlus, HeartHandshake, Package, Users, ClipboardCheck } from 'lucide-react'
 import type { Ficha } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 
@@ -55,49 +55,49 @@ export function DashboardPage() {
   if (!campanha) return null
 
   return (
-    <div className="p-8">
-      <h1 className="mb-6 text-3xl font-bold">Dashboard</h1>
-      <p className="mb-8 text-muted-foreground">{campanha.nome}</p>
+    <div className="p-4 md:p-8">
+      <h1 className="text-2xl font-bold md:text-3xl">Dashboard</h1>
+      <p className="mb-5 mt-1 text-sm text-muted-foreground md:mb-8 md:text-base">{campanha.nome}</p>
 
       {/* KPI Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 md:mb-8 md:gap-4 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fichas Ativas</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 md:p-6 md:pb-2">
+            <CardTitle className="text-xs font-medium sm:text-sm">Fichas Ativas</CardTitle>
             <FolderPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.totalFichas}</div>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl font-bold md:text-3xl">{stats.totalFichas}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Crianças</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 md:p-6 md:pb-2">
+            <CardTitle className="text-xs font-medium sm:text-sm">Total de Crianças</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.totalCriancas}</div>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl font-bold md:text-3xl">{stats.totalCriancas}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Apadrinhadas</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 md:p-6 md:pb-2">
+            <CardTitle className="text-xs font-medium sm:text-sm">Apadrinhadas</CardTitle>
             <HeartHandshake className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">{stats.apadrinhadas}</div>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl font-bold text-green-600 md:text-3xl">{stats.apadrinhadas}</div>
             <p className="text-xs text-muted-foreground">
               {stats.totalCriancas > 0 ? Math.round((stats.apadrinhadas / stats.totalCriancas) * 100) : 0}% do total
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Presentes no Evento</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2 md:p-6 md:pb-2">
+            <CardTitle className="text-xs font-medium sm:text-sm">Crianças presentes</CardTitle>
+            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600">{stats.presentes}</div>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl font-bold text-blue-600 md:text-3xl">{stats.presentes}</div>
           </CardContent>
         </Card>
       </div>
@@ -105,10 +105,10 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Por Origem */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-4 md:p-6">
             <CardTitle className="text-lg">Distribuição por Origem</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
             {Object.entries(stats.porOrigem).map(([nome, data]) => (
               <div key={nome}>
                 <div className="mb-1 flex justify-between text-sm">
@@ -130,10 +130,10 @@ export function DashboardPage() {
 
         {/* Status das Sacolas */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-4 md:p-6">
             <CardTitle className="text-lg">Status das Sacolas</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
             {Object.keys(stats.porStatusSacola).length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma criança apadrinhada ainda.</p>
             ) : (
@@ -153,16 +153,16 @@ export function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-8 flex gap-3">
-        <Button onClick={() => navigate('/fichas/nova')}>
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 md:mt-8">
+        <Button className="h-11" onClick={() => navigate('/fichas/nova')}>
           <FolderPlus className="mr-2 h-4 w-4" />
           Nova Ficha
         </Button>
-        <Button variant="outline" onClick={() => navigate('/apadrinhamento')}>
+        <Button variant="outline" className="h-11" onClick={() => navigate('/apadrinhamento')}>
           <HeartHandshake className="mr-2 h-4 w-4" />
           Apadrinhamento
         </Button>
-        <Button variant="outline" onClick={() => navigate('/sacolas')}>
+        <Button variant="outline" className="h-11" onClick={() => navigate('/sacolas')}>
           <Package className="mr-2 h-4 w-4" />
           Sacolas
         </Button>
