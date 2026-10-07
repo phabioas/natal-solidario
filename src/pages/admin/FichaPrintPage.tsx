@@ -75,31 +75,24 @@ function FichaPrintCard({
   campanhaNome: string
 }) {
   return (
-    <div className="mb-4 rounded-lg border-2 border-gray-300 bg-white p-6">
+    <div className="mb-4 flex min-h-[610px] flex-col rounded-lg border-2 border-gray-300 bg-white p-6 print:min-h-[260mm]">
       {/* Header */}
-      <div className="mb-4 border-b-2 border-green-600 pb-3 text-center">
-        <div className="text-2xl font-bold text-green-700">★ Natal Solidário GETJ</div>
-        <div className="text-sm text-gray-600">{campanhaNome}</div>
+      <div className="relative mb-4 min-h-16 border-b-2 border-green-600 pb-3 text-center">
+        <div className="px-24">
+          <div className="text-2xl font-bold text-green-700">★ Natal Solidário GETJ</div>
+          <div className="text-sm text-gray-600">{campanhaNome}</div>
+        </div>
+        <div className="absolute right-0 top-[-0.5rem] rounded-lg border-2 border-green-600 px-4 py-2">
+          <div className="text-xs text-gray-500">FICHA</div>
+          <div className="text-3xl font-bold leading-none text-green-700">{ficha.numeroFicha}</div>
+        </div>
       </div>
 
-      {/* Ficha number - destaque */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg border-2 border-green-600 px-4 py-2">
-            <div className="text-xs text-gray-500">FICHA</div>
-            <div className="text-3xl font-bold text-green-700">{ficha.numeroFicha}</div>
-          </div>
-          <div className="rounded-lg border border-gray-300 px-3 py-2">
-            <div className="text-xs text-gray-500">ORIGEM</div>
-            <div className="text-lg font-semibold">{ficha.origem}</div>
-          </div>
+      {ficha.status === 'cancelada' && (
+        <div className="mb-4 self-end rounded-lg border-2 border-red-500 bg-red-50 px-4 py-2 text-lg font-bold text-red-600">
+          CANCELADA
         </div>
-        {ficha.status === 'cancelada' && (
-          <div className="rounded-lg border-2 border-red-500 bg-red-50 px-4 py-2 text-lg font-bold text-red-600">
-            CANCELADA
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Dados da Mãe */}
       <div className="mb-4">
@@ -128,8 +121,13 @@ function FichaPrintCard({
       </div>
 
       {/* Footer */}
-      <div className="mt-4 border-t border-gray-200 pt-2 text-center text-xs text-gray-400">
-        Ficha gerada em {new Date().toLocaleDateString('pt-BR')} · {campanhaNome}
+      <div className="mt-auto flex items-end justify-between gap-4 border-t border-gray-200 pt-2 text-xs">
+        <div className="text-gray-400">
+          Ficha gerada em {new Date().toLocaleDateString('pt-BR')} · {campanhaNome}
+        </div>
+        <div className="shrink-0 font-semibold uppercase text-black">
+          Origem: {ficha.origem}
+        </div>
       </div>
     </div>
   )
