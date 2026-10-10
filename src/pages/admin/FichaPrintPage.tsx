@@ -5,7 +5,7 @@ import { subscribeFichas } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Printer } from 'lucide-react'
 import type { Ficha, Crianca } from '@/models/types'
-import { calcularIdade } from '@/lib/idade'
+import { calcularIdade, formatDateOnly } from '@/lib/idade'
 
 export function FichaPrintPage() {
   const params = useParams()
@@ -157,7 +157,7 @@ function CriancaPrintRow({
       </div>
       <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
         <div><span className="font-semibold">Idade:</span> {idade}</div>
-        <div><span className="font-semibold">Nasc.:</span> {crianca.dataNascimento ? formatDate(crianca.dataNascimento) : '-'}</div>
+        <div><span className="font-semibold">Nasc.:</span> {crianca.dataNascimento ? formatDateOnly(crianca.dataNascimento) : '-'}</div>
         <div><span className="font-semibold">Camisa:</span> {crianca.tamCamiseta || '-'}</div>
         <div><span className="font-semibold">Calça:</span> {crianca.tamCalca || '-'}</div>
         <div><span className="font-semibold">Calçado:</span> {crianca.tamCalcado || '-'}</div>
@@ -171,10 +171,4 @@ function CriancaPrintRow({
       </div>
     </div>
   )
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('pt-BR')
 }

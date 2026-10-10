@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "test:dates": "node --experimental-strip-types --test tests/idade.test.ts",
     "test:rules": "firebase emulators:exec --only firestore \"node --test tests/firestore.rules.test.mjs\"",
     "deploy": "npm run build && firebase deploy"
   },

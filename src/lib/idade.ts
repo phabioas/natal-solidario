@@ -1,10 +1,41 @@
 /**
+ * Interpreta uma data civil (AAAA-MM-DD) sem aplicar conversão de fuso horário.
+ * Datas de nascimento não representam um instante UTC.
+ */
+export function parseDateOnly(value: string | Date): Date {
+  if (value instanceof Date) return new Date(value.getTime())
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return new Date(value)
+
+  const ano = Number(match[1])
+  const mes = Number(match[2])
+  const dia = Number(match[3])
+  // Meio-dia local evita transições excepcionais de horário de verão à meia-noite.
+  const date = new Date(ano, mes - 1, dia, 12)
+  if (date.getFullYear() !== ano || date.getMonth() !== mes - 1 || date.getDate() !== dia) {
+    return new Date(NaN)
+  }
+  return date
+}
+
+export function formatDateOnly(value: string | Date): string {
+  const date = parseDateOnly(value)
+  if (isNaN(date.getTime())) return typeof value === 'string' ? value : ''
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+}
+
+/**
  * Calcula a idade entre duas datas no formato "XA Ym Zd"
  * (X anos, Y meses, Z dias)
  */
 export function calcularIdade(dataNascimento: string | Date, dataReferencia: string | Date): string {
-  const nasc = new Date(dataNascimento)
-  const ref = new Date(dataReferencia)
+  const nasc = parseDateOnly(dataNascimento)
+  const ref = parseDateOnly(dataReferencia)
 
   if (isNaN(nasc.getTime()) || isNaN(ref.getTime())) return ''
   if (ref < nasc) return ''
@@ -34,8 +65,8 @@ export function calcularIdade(dataNascimento: string | Date, dataReferencia: str
  * Calcula idade completa com anos, meses e dias
  */
 export function calcularIdadeDetalhada(dataNascimento: string | Date, dataReferencia: string | Date) {
-  const nasc = new Date(dataNascimento)
-  const ref = new Date(dataReferencia)
+  const nasc = parseDateOnly(dataNascimento)
+  const ref = parseDateOnly(dataReferencia)
 
   if (isNaN(nasc.getTime()) || isNaN(ref.getTime())) return null
   if (ref < nasc) return null
