@@ -62,6 +62,16 @@ export function calcularIdade(dataNascimento: string | Date, dataReferencia: str
 }
 
 /**
+ * Calcula a idade exibindo somente anos e meses.
+ * Usado nos materiais enviados aos padrinhos.
+ */
+export function calcularIdadeAnosMeses(dataNascimento: string | Date, dataReferencia: string | Date): string {
+  const idade = calcularIdadeDetalhada(dataNascimento, dataReferencia)
+  if (!idade) return ''
+  return `${idade.anos}A ${idade.meses}m`
+}
+
+/**
  * Calcula idade completa com anos, meses e dias
  */
 export function calcularIdadeDetalhada(dataNascimento: string | Date, dataReferencia: string | Date) {

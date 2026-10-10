@@ -5,7 +5,7 @@ import { subscribeFichas } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Share2, Printer, Download } from 'lucide-react'
 import type { Ficha, Crianca } from '@/models/types'
-import { calcularIdade } from '@/lib/idade'
+import { calcularIdadeAnosMeses } from '@/lib/idade'
 import { toast } from 'sonner'
 
 export function FichaPadrinhoPage() {
@@ -41,7 +41,7 @@ export function FichaPadrinhoPage() {
 
   const { crianca } = resultado
   const idade = crianca.dataNascimento
-    ? calcularIdade(crianca.dataNascimento, dataFesta)
+    ? calcularIdadeAnosMeses(crianca.dataNascimento, dataFesta)
     : crianca.idadeTexto || '-'
 
   const handleShareWhatsApp = () => {
@@ -133,7 +133,7 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')!
   canvas.width = W
-  canvas.height = 900 // will adjust
+  canvas.height = 1200 // cropped to actual content at the end
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, W, canvas.height)
 
@@ -157,6 +157,21 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
   const drawBox = (x: number, w: number, h: number, fill: string, border?: string) => {
     if (fill) { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h) }
     if (border) { ctx.strokeStyle = border; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, h) }
+  }
+  const wrapText = (text: string, maxWidth: number): string[] => {
+    const lines: string[] = []
+    let current = ''
+    for (const word of text.split(/\s+/)) {
+      const candidate = current ? `${current} ${word}` : word
+      if (current && ctx.measureText(candidate).width > maxWidth) {
+        lines.push(current)
+        current = word
+      } else {
+        current = candidate
+      }
+    }
+    if (current) lines.push(current)
+    return lines
   }
 
   // Header
@@ -219,6 +234,22 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
   labelValue('Calçado:', crianca.tamCalcado || '-', P, colW)
   labelValue('TEA:', crianca.tea ? 'SIM' : 'Não', P + colW, colW)
   y += 46
+
+  const notas = getNotasCrianca(crianca)
+  if (notas.length > 0) {
+    ctx.font = '14px system-ui, sans-serif'
+    const linhas = notas.flatMap(([label, value]) => wrapText(`${label}: ${value}`, W - P * 2 - 32))
+    const notasH = 40 + linhas.length * 20
+    drawBox(P, W - P * 2, notasH, '#fff7ed', '#f97316')
+    ctx.fillStyle = '#9a3412'
+    ctx.font = 'bold 15px system-ui, sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText('Informações importantes sobre a criança', P + 16, y + 24)
+    ctx.fillStyle = '#333'
+    ctx.font = '14px system-ui, sans-serif'
+    linhas.forEach((linha, index) => ctx.fillText(linha, P + 16, y + 48 + index * 20))
+    y += notasH + 16
+  }
 
   // Sacolinha box
   const sacH = 130
@@ -328,6 +359,16 @@ function FichaPadrinhoCard({
           <div><strong>Calçado:</strong> {crianca.tamCalcado || '-'}</div>
           <div><strong>TEA:</strong> {crianca.tea ? 'SIM' : 'Não'}</div>
         </div>
+        {getNotasCrianca(crianca).length > 0 && (
+          <div style={{ marginTop: '16px', background: '#fff7ed', border: '1px solid #f97316', borderRadius: '8px', padding: '12px', fontSize: '14px' }}>
+            <div style={{ fontWeight: 'bold', color: '#9a3412', marginBottom: '6px' }}>
+              Informações importantes sobre a criança
+            </div>
+            {getNotasCrianca(crianca).map(([label, value]) => (
+              <div key={label} style={{ marginTop: '3px' }}><strong>{label}:</strong> {value}</div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ background: '#f0fdf4', border: '1px solid #16a34a', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
@@ -370,8 +411,13 @@ function montaTextoWhatsApp(crianca: Crianca, idade: string, ano: number): strin
   text += `*Camisa:* ${crianca.tamCamiseta || '-'}\n`
   text += `*Calça:* ${crianca.tamCalca || '-'}\n`
   text += `*Calçado:* ${crianca.tamCalcado || '-'}\n`
-  text += `*TEA:* ${crianca.tea ? 'SIM' : 'Não'}\n\n`
-  text += `*🎁 A sacolinha deve conter:*\n`
+  text += `*TEA:* ${crianca.tea ? 'SIM' : 'Não'}\n`
+  const notas = getNotasCrianca(crianca)
+  if (notas.length > 0) {
+    text += `\n*Informações importantes sobre a criança:*\n`
+    notas.forEach(([label, value]) => { text += `*${label}:* ${value}\n` })
+  }
+  text += `\n*🎁 A sacolinha deve conter:*\n`
   text += `• Conjunto de roupa nova\n`
   text += `• Calçado novo\n`
   text += `• Brinquedo novo\n`
@@ -379,6 +425,14 @@ function montaTextoWhatsApp(crianca: Crianca, idade: string, ano: number): strin
   text += `*⏰ Entregar até 06/12/${ano}*\n\n`
   text += `📞 WhatsApp: (11) 98117-6718`
   return text
+}
+
+function getNotasCrianca(crianca: Crianca): [string, string][] {
+  const notas: [string, string][] = []
+  if (crianca.observacao?.trim()) notas.push(['Observação', crianca.observacao.trim()])
+  if (crianca.preferencial?.trim()) notas.push(['Preferência', crianca.preferencial.trim()])
+  if (crianca.observacao2?.trim()) notas.push(['Observação adicional', crianca.observacao2.trim()])
+  return notas
 }
 
 function downloadImage(dataUrl: string, idCrianca: string) {

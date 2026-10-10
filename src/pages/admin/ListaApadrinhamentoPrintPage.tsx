@@ -5,7 +5,7 @@ import { subscribeFichas } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Printer, Share2 } from 'lucide-react'
 import type { Ficha } from '@/models/types'
-import { calcularIdade } from '@/lib/idade'
+import { calcularIdadeAnosMeses } from '@/lib/idade'
 
 export function ListaApadrinhamentoPrintPage() {
   const navigate = useNavigate()
@@ -33,7 +33,7 @@ export function ListaApadrinhamentoPrintPage() {
     text += `*Crianças disponíveis para apadrinhamento (${disponiveis.length}):*\n\n`
     for (const { crianca } of disponiveis) {
       const idade = crianca.dataNascimento
-        ? calcularIdade(crianca.dataNascimento, dataFesta)
+        ? calcularIdadeAnosMeses(crianca.dataNascimento, dataFesta)
         : crianca.idadeTexto || '-'
       const sexo = crianca.sexo === 'M' ? '♂' : '♀'
       text += `${crianca.idCrianca} - ${crianca.nomeCompleto} - ${sexo} - ${idade}\n`
@@ -87,7 +87,7 @@ export function ListaApadrinhamentoPrintPage() {
             <tbody>
               {disponiveis.map(({ crianca }) => {
                 const idade = crianca.dataNascimento
-                  ? calcularIdade(crianca.dataNascimento, dataFesta)
+                  ? calcularIdadeAnosMeses(crianca.dataNascimento, dataFesta)
                   : crianca.idadeTexto || '-'
                 return (
                   <tr key={crianca.idCrianca} className="border-b border-gray-200">
