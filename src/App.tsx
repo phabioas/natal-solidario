@@ -16,6 +16,7 @@ import { CadastroFichaPage } from '@/pages/cadastro/CadastroFichaPage'
 import { FichaPrintPage } from '@/pages/admin/FichaPrintPage'
 import { ListaApadrinhamentoPrintPage } from '@/pages/admin/ListaApadrinhamentoPrintPage'
 import { FichaPadrinhoPage } from '@/pages/admin/FichaPadrinhoPage'
+import { FichasPadrinhoPrintPage } from '@/pages/admin/FichasPadrinhoPrintPage'
 import { PublicDisponiveisPage } from '@/pages/PublicDisponiveisPage'
 
 function LoadingScreen() {
@@ -77,6 +78,7 @@ export default function App() {
         {usuario.role === 'admin' && <Route path="usuarios" element={<UsuariosPage />} />}
       </Route>
       <Route path="apadrinhamento/lista" element={<ListaApadrinhamentoPrintPage />} />
+      <Route path="apadrinhamento/imprimir" element={<FichasPadrinhoPrintPage />} />
       <Route path="apadrinhamento/ficha/:criancaId" element={<FichaPadrinhoPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

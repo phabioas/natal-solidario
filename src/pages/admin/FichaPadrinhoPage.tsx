@@ -321,7 +321,7 @@ function gerarImagemFicha(crianca: Crianca, idade: string, ano: number, campanha
 
 // ─── Helpers ─────────────────────────────────────────────
 
-function FichaPadrinhoCard({
+export function FichaPadrinhoCard({
   crianca,
   idade,
   ano,

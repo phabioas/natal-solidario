@@ -36,9 +36,12 @@ export function DashboardPage() {
     }
 
     const porStatusSacola: Record<string, number> = {}
+    const porContato: Record<string, number> = {}
     for (const c of apadrinhadas) {
-      const s = c.apadrinhamento!.status
-      porStatusSacola[s] = (porStatusSacola[s] || 0) + 1
+      const apadrinhamento = c.apadrinhamento!
+      porStatusSacola[apadrinhamento.status] = (porStatusSacola[apadrinhamento.status] || 0) + 1
+      const contato = apadrinhamento.contatoNome || 'Sem contato'
+      porContato[contato] = (porContato[contato] || 0) + 1
     }
 
     return {
@@ -49,6 +52,7 @@ export function DashboardPage() {
       presentes: presentes.length,
       porOrigem,
       porStatusSacola,
+      porContato,
     }
   }, [fichas, campanha])
 
@@ -151,6 +155,29 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Apadrinhadas por contato */}
+      <Card className="mt-6 md:mt-8">
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg">Crianças apadrinhadas por contato</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+          {Object.keys(stats.porContato).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma criança apadrinhada ainda.</p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(stats.porContato)
+                .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+                .map(([contato, quantidade]) => (
+                  <div key={contato} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                    <span className="break-words text-sm font-medium">{contato}</span>
+                    <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 font-bold text-green-800">{quantidade}</span>
+                  </div>
+                ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 md:mt-8">

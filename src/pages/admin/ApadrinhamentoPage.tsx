@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCampanha } from '@/contexts/CampanhaContext'
 import { subscribeFichas, subscribeContatos, apadrinharCrianca, atualizarApadrinhamento, desApadrinharCrianca } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Search, Heart, X, Link2, Share2, SlidersHorizontal, Pencil } from 'lucide-react'
+import { Search, Heart, X, Link2, Share2, SlidersHorizontal, Pencil, Printer } from 'lucide-react'
 import type { Ficha, Contato, Crianca } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 import { toast } from 'sonner'
@@ -15,11 +15,23 @@ import { PUBLIC_LIST_PATH } from '@/lib/publicacao'
 export function ApadrinhamentoPage() {
   const { campanha } = useCampanha()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [fichas, setFichas] = useState<Ficha[]>([])
   const [contatos, setContatos] = useState<Contato[]>([])
-  const [busca, setBusca] = useState('')
-  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'disponiveis' | 'apadrinhadas'>('todos')
-  const [filtroOrigem, setFiltroOrigem] = useState('')
+  const busca = searchParams.get('busca') || ''
+  const filtroStatus = (searchParams.get('status') || 'todos') as 'todos' | 'disponiveis' | 'apadrinhadas'
+  const filtroOrigem = searchParams.get('origem') || ''
+  const filtroPadrinho = searchParams.get('padrinho') || ''
+  const filtroContato = searchParams.get('contato') || ''
+
+  const updateFilter = (key: string, value: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (!value || (key === 'status' && value === 'todos')) next.delete(key)
+    else next.set(key, value)
+    setSearchParams(next, { replace: true })
+  }
+
+  const clearFilters = () => setSearchParams({}, { replace: true })
   const [showFiltros, setShowFiltros] = useState(false)
   const [showApadrinhar, setShowApadrinhar] = useState<{ ficha: Ficha; crianca: Crianca } | null>(null)
 
@@ -38,11 +50,17 @@ export function ApadrinhamentoPage() {
         if (filtroOrigem && ficha.origem !== filtroOrigem) return false
         if (filtroStatus === 'disponiveis' && crianca.apadrinhamento) return false
         if (filtroStatus === 'apadrinhadas' && !crianca.apadrinhamento) return false
+        if (filtroPadrinho && crianca.apadrinhamento?.padrinho !== filtroPadrinho) return false
+        if (filtroContato && crianca.apadrinhamento?.contatoId !== filtroContato) return false
         if (!busca) return true
         const t = busca.toLowerCase()
-        return crianca.nomeCompleto.toLowerCase().includes(t) || crianca.idCrianca.includes(t) || ficha.nomeResponsavel.toLowerCase().includes(t)
+        return crianca.nomeCompleto.toLowerCase().includes(t) || crianca.idCrianca.includes(t) || ficha.nomeResponsavel.toLowerCase().includes(t) || crianca.apadrinhamento?.padrinho.toLowerCase().includes(t) || crianca.apadrinhamento?.contatoNome.toLowerCase().includes(t)
       })
-  }, [fichas, busca, filtroStatus, filtroOrigem])
+  }, [fichas, busca, filtroStatus, filtroOrigem, filtroPadrinho, filtroContato])
+
+  const padrinhos = useMemo(() => Array.from(new Set(
+    fichas.flatMap((f) => f.criancas.map((c) => c.apadrinhamento?.padrinho).filter((nome): nome is string => !!nome)),
+  )).sort((a, b) => a.localeCompare(b)), [fichas])
 
   if (!campanha) return null
 
@@ -60,6 +78,19 @@ export function ApadrinhamentoPage() {
     <div className="p-4 md:p-8">
       <div className="mb-5 flex items-center justify-between gap-3 md:mb-6">
         <h1 className="text-2xl font-bold md:text-3xl">Apadrinhamento</h1>
+        <div className="flex items-center gap-2">
+        {criancasFlat.some(({ crianca }) => crianca.apadrinhamento) && (
+          <Button
+            variant="outline"
+            className="h-11 w-11 p-0 md:h-10 md:w-auto md:px-4"
+            onClick={() => navigate(`/apadrinhamento/imprimir?${searchParams.toString()}`)}
+            aria-label="Imprimir fichas apadrinhadas filtradas"
+            title="Imprimir fichas filtradas"
+          >
+            <Printer className="h-5 w-5 md:mr-2 md:h-4 md:w-4" />
+            <span className="hidden md:inline">Imprimir Filtradas</span>
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"
@@ -71,6 +102,7 @@ export function ApadrinhamentoPage() {
           <Link2 className="h-5 w-5 md:mr-2 md:h-4 md:w-4" />
           <span className="hidden md:inline">Copiar Link Público</span>
         </Button>
+        </div>
       </div>
 
       {/* Busca e filtros */}
@@ -78,7 +110,7 @@ export function ApadrinhamentoPage() {
         <div className="flex gap-2">
           <div className="relative min-w-0 flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input placeholder="Buscar criança, ficha, mãe..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
+            <Input placeholder="Buscar criança, ficha, mãe, padrinho ou contato..." value={busca} onChange={(e) => updateFilter('busca', e.target.value)} className="pl-10" />
           </div>
           <Button
             variant="outline"
@@ -88,23 +120,31 @@ export function ApadrinhamentoPage() {
             title="Filtros"
           >
             <SlidersHorizontal className="h-4 w-4" />
-            {(filtroStatus !== 'todos' || filtroOrigem) && (
+            {(busca || filtroStatus !== 'todos' || filtroOrigem || filtroPadrinho || filtroContato) && (
               <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary" />
             )}
           </Button>
         </div>
         <div className={`${showFiltros ? 'flex' : 'hidden'} flex-col gap-2 rounded-lg border bg-muted/20 p-3 md:flex md:flex-row md:border-0 md:bg-transparent md:p-0`}>
-          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value as typeof filtroStatus)}>
+          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroStatus} onChange={(e) => updateFilter('status', e.target.value)}>
             <option value="todos">Todas</option>
             <option value="disponiveis">Disponíveis</option>
             <option value="apadrinhadas">Apadrinhadas</option>
           </select>
-          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
+          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroOrigem} onChange={(e) => updateFilter('origem', e.target.value)}>
             <option value="">Todas origens</option>
             {campanha.origens.map((o) => <option key={o.nome} value={o.nome}>{o.nome}</option>)}
           </select>
-          {(filtroStatus !== 'todos' || filtroOrigem) && (
-            <Button variant="ghost" size="sm" onClick={() => { setFiltroStatus('todos'); setFiltroOrigem('') }}>
+          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroPadrinho} onChange={(e) => updateFilter('padrinho', e.target.value)}>
+            <option value="">Todos padrinhos</option>
+            {padrinhos.map((nome) => <option key={nome} value={nome}>{nome}</option>)}
+          </select>
+          <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroContato} onChange={(e) => updateFilter('contato', e.target.value)}>
+            <option value="">Todos contatos</option>
+            {contatos.map((contato) => <option key={contato.id} value={contato.id}>{contato.nome}</option>)}
+          </select>
+          {(busca || filtroStatus !== 'todos' || filtroOrigem || filtroPadrinho || filtroContato) && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
               Limpar filtros
             </Button>
           )}
