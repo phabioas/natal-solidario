@@ -371,6 +371,32 @@ export async function apadrinharCrianca(
   await updateFicha(campanhaId, fichaId, { criancas: atualizadas })
 }
 
+export async function atualizarApadrinhamento(
+  campanhaId: string,
+  fichaId: string,
+  criancas: Crianca[],
+  criancaId: string,
+  padrinho: string,
+  contatoId: string,
+  contatoNome: string,
+): Promise<void> {
+  const atualizadas = criancas.map((c) => {
+    if (c.idCrianca === criancaId && c.apadrinhamento) {
+      return {
+        ...c,
+        apadrinhamento: {
+          ...c.apadrinhamento,
+          padrinho,
+          contatoId,
+          contatoNome,
+        },
+      }
+    }
+    return c
+  })
+  await updateFicha(campanhaId, fichaId, { criancas: atualizadas })
+}
+
 export async function desApadrinharCrianca(
   campanhaId: string,
   fichaId: string,

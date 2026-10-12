@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCampanha } from '@/contexts/CampanhaContext'
-import { subscribeFichas, subscribeContatos, apadrinharCrianca, desApadrinharCrianca } from '@/services/firestore'
+import { subscribeFichas, subscribeContatos, apadrinharCrianca, atualizarApadrinhamento, desApadrinharCrianca } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Search, Heart, X, Link2, Share2, SlidersHorizontal } from 'lucide-react'
+import { Search, Heart, X, Link2, Share2, SlidersHorizontal, Pencil } from 'lucide-react'
 import type { Ficha, Contato, Crianca } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 import { toast } from 'sonner'
@@ -149,6 +149,16 @@ export function ApadrinhamentoPage() {
                 <td className="p-3 text-right">
                   <div className="flex justify-end gap-1">
                     {crianca.apadrinhamento && (
+                      <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowApadrinhar({ ficha, crianca })}
+                        aria-label="Editar apadrinhamento"
+                        title="Editar apadrinhamento"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -158,6 +168,7 @@ export function ApadrinhamentoPage() {
                       >
                         <Share2 className="h-4 w-4" />
                       </Button>
+                      </>
                     )}
                     {crianca.apadrinhamento ? (
                       <Button
@@ -244,6 +255,15 @@ export function ApadrinhamentoPage() {
                   <Button
                     variant="outline"
                     className="h-11 w-11 p-0"
+                    onClick={() => setShowApadrinhar({ ficha, crianca })}
+                    aria-label="Editar apadrinhamento"
+                    title="Editar apadrinhamento"
+                  >
+                    <Pencil className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-11 w-11 p-0"
                     onClick={() => navigate(`/apadrinhamento/ficha/${encodeURIComponent(crianca.idCrianca)}`)}
                     aria-label="Abrir ficha do padrinho"
                     title="Ficha do padrinho"
@@ -292,12 +312,17 @@ export function ApadrinhamentoPage() {
           onClose={() => setShowApadrinhar(null)}
           onConfirm={async (padrinho, contatoId, contatoNome) => {
             try {
-              await apadrinharCrianca(campanha.id, showApadrinhar.ficha.id, showApadrinhar.ficha.criancas, showApadrinhar.crianca.idCrianca, padrinho, contatoId, contatoNome)
-              toast.success(`${showApadrinhar.crianca.nomeCompleto} apadrinhada!`)
+              if (showApadrinhar.crianca.apadrinhamento) {
+                await atualizarApadrinhamento(campanha.id, showApadrinhar.ficha.id, showApadrinhar.ficha.criancas, showApadrinhar.crianca.idCrianca, padrinho, contatoId, contatoNome)
+                toast.success('Apadrinhamento atualizado!')
+              } else {
+                await apadrinharCrianca(campanha.id, showApadrinhar.ficha.id, showApadrinhar.ficha.criancas, showApadrinhar.crianca.idCrianca, padrinho, contatoId, contatoNome)
+                toast.success(`${showApadrinhar.crianca.nomeCompleto} apadrinhada!`)
+              }
               setShowApadrinhar(null)
             } catch (err) {
               console.error(err)
-              toast.error('Erro ao apadrinhar. Tente novamente.')
+              toast.error('Erro ao salvar o apadrinhamento. Tente novamente.')
             }
           }}
         />
@@ -315,13 +340,14 @@ function ApadrinharDialog({
   onClose: () => void
   onConfirm: (padrinho: string, contatoId: string, contatoNome: string) => Promise<void>
 }) {
-  const [padrinho, setPadrinho] = useState('')
-  const [contatoId, setContatoId] = useState('')
+  const isEdit = !!crianca.apadrinhamento
+  const [padrinho, setPadrinho] = useState(crianca.apadrinhamento?.padrinho || '')
+  const [contatoId, setContatoId] = useState(crianca.apadrinhamento?.contatoId || '')
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center sm:p-4">
       <div className="max-h-[90vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:max-w-md sm:rounded-xl sm:p-6">
-        <h2 className="mb-4 text-xl font-bold">Apadrinhar {crianca.nomeCompleto}</h2>
+        <h2 className="mb-4 text-xl font-bold">{isEdit ? 'Editar apadrinhamento' : 'Apadrinhar'} {crianca.nomeCompleto}</h2>
         <p className="mb-4 text-sm text-muted-foreground">Ficha {ficha.numeroFicha} · ID {crianca.idCrianca}</p>
         <div className="space-y-4">
           <div>
@@ -348,7 +374,7 @@ function ApadrinharDialog({
                 onConfirm(padrinho, contatoId, contato.nome)
               }}
             >
-              Confirmar Apadrinhamento
+              {isEdit ? 'Salvar Alterações' : 'Confirmar Apadrinhamento'}
             </Button>
           </div>
         </div>
