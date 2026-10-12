@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Search, Heart, X, Link2, Share2, SlidersHorizontal, Pencil, Printer } from 'lucide-react'
+import { Search, Heart, X, Link2, Share2, SlidersHorizontal, Pencil, Printer, UserPlus } from 'lucide-react'
 import type { Ficha, Contato, Crianca } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 import { toast } from 'sonner'
@@ -60,7 +60,12 @@ export function ApadrinhamentoPage() {
 
   const padrinhos = useMemo(() => Array.from(new Set(
     fichas.flatMap((f) => f.criancas.map((c) => c.apadrinhamento?.padrinho).filter((nome): nome is string => !!nome)),
-  )).sort((a, b) => a.localeCompare(b)), [fichas])
+  )).sort((a, b) => a.localeCompare(b, 'pt-BR')), [fichas])
+
+  const contatosOrdenados = useMemo(
+    () => [...contatos].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
+    [contatos],
+  )
 
   if (!campanha) return null
 
@@ -141,7 +146,7 @@ export function ApadrinhamentoPage() {
           </select>
           <select className="h-10 w-full rounded-md border bg-background px-3 md:w-auto" value={filtroContato} onChange={(e) => updateFilter('contato', e.target.value)}>
             <option value="">Todos contatos</option>
-            {contatos.map((contato) => <option key={contato.id} value={contato.id}>{contato.nome}</option>)}
+            {contatosOrdenados.map((contato) => <option key={contato.id} value={contato.id}>{contato.nome}</option>)}
           </select>
           {(busca || filtroStatus !== 'todos' || filtroOrigem || filtroPadrinho || filtroContato) && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -348,8 +353,9 @@ export function ApadrinhamentoPage() {
         <ApadrinharDialog
           ficha={showApadrinhar.ficha}
           crianca={showApadrinhar.crianca}
-          contatos={contatos}
+          contatos={contatosOrdenados}
           onClose={() => setShowApadrinhar(null)}
+          onNewContact={() => navigate('/contatos')}
           onConfirm={async (padrinho, contatoId, contatoNome) => {
             try {
               if (showApadrinhar.crianca.apadrinhamento) {
@@ -372,12 +378,13 @@ export function ApadrinhamentoPage() {
 }
 
 function ApadrinharDialog({
-  ficha, crianca, contatos, onClose, onConfirm,
+  ficha, crianca, contatos, onClose, onNewContact, onConfirm,
 }: {
   ficha: Ficha
   crianca: Crianca
   contatos: Contato[]
   onClose: () => void
+  onNewContact: () => void
   onConfirm: (padrinho: string, contatoId: string, contatoNome: string) => Promise<void>
 }) {
   const isEdit = !!crianca.apadrinhamento
@@ -398,11 +405,15 @@ function ApadrinharDialog({
             <Label className="mb-1 block">Contato (Voluntário GETJ) *</Label>
             <select className="h-10 w-full rounded-md border px-3" value={contatoId} onChange={(e) => setContatoId(e.target.value)}>
               <option value="">Selecione...</option>
-              {contatos.map((c) => <option key={c.id} value={c.id}>{c.nome} ({c.telefone})</option>)}
+              {contatos.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
             </select>
             {contatos.length === 0 && (
               <p className="mt-1 text-sm text-red-600">Nenhum contato cadastrado. Cadastre contatos primeiro.</p>
             )}
+            <Button type="button" variant="ghost" size="sm" className="mt-2 px-0 text-primary" onClick={onNewContact}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Cadastrar novo contato
+            </Button>
           </div>
           <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row">
             <Button variant="outline" className="h-11 flex-1" onClick={onClose}>Cancelar</Button>
