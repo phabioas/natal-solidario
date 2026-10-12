@@ -4,7 +4,7 @@ import { subscribeFichas, updateSacolaStatus } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, AlertCircle, SlidersHorizontal } from 'lucide-react'
+import { Search, SlidersHorizontal } from 'lucide-react'
 import type { Ficha, Crianca, SacolaStatus } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 import { toast } from 'sonner'
@@ -26,11 +26,14 @@ export function SacolasPage() {
     return subscribeFichas(campanha.id, setFichas)
   }, [campanha])
 
-  const sacolas = useMemo(() => {
+  const todasSacolas = useMemo(() => {
     return fichas
       .filter((f) => f.status === 'ativa')
       .flatMap((f) => f.criancas.filter((c) => c.apadrinhamento).map((c) => ({ ficha: f, crianca: c })))
-      .filter(({ crianca }) => {
+  }, [fichas])
+
+  const sacolas = useMemo(() => {
+    return todasSacolas.filter(({ crianca }) => {
         const ap = crianca.apadrinhamento!
         if (filtroStatus && ap.status !== filtroStatus) return false
         if (filtroContato && ap.contatoId !== filtroContato) return false
@@ -38,7 +41,7 @@ export function SacolasPage() {
         const t = busca.toLowerCase()
         return crianca.nomeCompleto.toLowerCase().includes(t) || crianca.idCrianca.includes(t) || ap.padrinho.toLowerCase().includes(t)
       })
-  }, [fichas, busca, filtroStatus, filtroContato])
+  }, [todasSacolas, busca, filtroStatus, filtroContato])
 
   const contatos = useMemo(() => {
     const map = new Map<string, string>()
@@ -48,20 +51,15 @@ export function SacolasPage() {
     return Array.from(map.entries())
   }, [fichas])
 
-  // "O que falta" - sacolas pendentes ou faltando itens, agrupadas por contato
-  const faltantes = useMemo(() => {
-    const grupos: Record<string, { nome: string; items: { crianca: Crianca; padrinho: string }[] }> = {}
-    fichas.filter((f) => f.status === 'ativa').forEach((f) => {
-      f.criancas.forEach((c) => {
-        if (c.apadrinhamento && (c.apadrinhamento.status === 'pendente' || c.apadrinhamento.status === 'faltando_itens')) {
-          const cid = c.apadrinhamento.contatoId
-          if (!grupos[cid]) grupos[cid] = { nome: c.apadrinhamento.contatoNome, items: [] }
-          grupos[cid].items.push({ crianca: c, padrinho: c.apadrinhamento.padrinho })
-        }
-      })
-    })
-    return grupos
-  }, [fichas])
+  const statusCounts = useMemo(() => {
+    const counts = Object.fromEntries(STATUS_ORDER.map((status) => [status, 0])) as Record<SacolaStatus, number>
+    todasSacolas.forEach(({ crianca }) => { counts[crianca.apadrinhamento!.status]++ })
+    return counts
+  }, [todasSacolas])
+
+  const totalSacolas = todasSacolas.length
+  const recebidas = totalSacolas - statusCounts.pendente
+  const percentualRecebidas = totalSacolas > 0 ? Math.round((recebidas / totalSacolas) * 100) : 0
 
   if (!campanha) return null
 
@@ -79,30 +77,38 @@ export function SacolasPage() {
     <div className="p-4 md:p-8">
       <h1 className="mb-5 text-2xl font-bold md:mb-6 md:text-3xl">Sacolas</h1>
 
-      {/* O que falta - destaque */}
-      {Object.keys(faltantes).length > 0 && (
-        <div className="mb-6 rounded-lg border-2 border-yellow-300 bg-yellow-50 p-4">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-yellow-800">
-            <AlertCircle className="h-5 w-5" />
-            Sacolas faltantes ({Object.values(faltantes).reduce((s, g) => s + g.items.length, 0)})
-          </h2>
-          <div className="space-y-3">
-            {Object.entries(faltantes).map(([cid, grupo]) => (
-              <div key={cid} className="rounded-md bg-white p-3">
-                <div className="mb-2 font-semibold">{grupo.nome}</div>
-                <div className="space-y-1">
-                  {grupo.items.map(({ crianca, padrinho }) => (
-                    <div key={crianca.idCrianca} className="flex flex-col gap-0.5 border-t py-2 text-sm first:border-0 first:pt-0 sm:flex-row sm:justify-between">
-                      <span className="break-words"><strong>{crianca.idCrianca}</strong> - {crianca.nomeCompleto}</span>
-                      <span className="shrink-0 text-muted-foreground">Padrinho: {padrinho}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+      {/* Resumo de andamento */}
+      <section className="mb-6 rounded-xl border bg-white p-4 shadow-sm">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-bold">Andamento das sacolas</h2>
+            <p className="text-sm text-muted-foreground">{totalSacolas} crianças apadrinhadas</p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-green-700">{percentualRecebidas}%</div>
+            <div className="text-xs text-muted-foreground">{recebidas} de {totalSacolas} recebidas</div>
           </div>
         </div>
-      )}
+
+        <div className="mb-4 h-3 overflow-hidden rounded-full bg-gray-200" title={`${percentualRecebidas}% recebidas`}>
+          <div className="h-full rounded-full bg-green-600 transition-all" style={{ width: `${percentualRecebidas}%` }} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          {STATUS_ORDER.map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setFiltroStatus(filtroStatus === status ? '' : status)}
+              className={`rounded-lg border p-3 text-left transition-colors hover:bg-muted/40 ${filtroStatus === status ? 'border-primary ring-1 ring-primary' : ''}`}
+              title={`Filtrar por ${SACOLA_STATUS_LABELS[status]}`}
+            >
+              <Badge className={SACOLA_STATUS_COLORS[status]}>{SACOLA_STATUS_LABELS[status]}</Badge>
+              <div className="mt-2 text-2xl font-bold">{statusCounts[status]}</div>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Busca e filtros */}
       <div className="mb-4 space-y-3">
