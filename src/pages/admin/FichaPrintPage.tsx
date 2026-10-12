@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCampanha } from '@/contexts/CampanhaContext'
 import { subscribeFichas } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
@@ -10,11 +10,13 @@ import { calcularIdade, formatDateOnly } from '@/lib/idade'
 export function FichaPrintPage() {
   const params = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { campanha } = useCampanha()
   const [fichas, setFichas] = useState<Ficha[]>([])
 
   const fichaId = params.fichaId
   const printAll = !fichaId
+  const filteredPrint = printAll && searchParams.toString().length > 0
 
   useEffect(() => {
     if (!campanha) return
@@ -23,10 +25,23 @@ export function FichaPrintPage() {
       if (fichaId) {
         setFichas(all.filter((f) => f.id === fichaId))
       } else {
-        setFichas(all.filter((f) => f.status === 'ativa'))
+        const busca = (searchParams.get('busca') || '').toLowerCase()
+        const origem = searchParams.get('origem') || ''
+        const mostrarCanceladas = searchParams.get('canceladas') === '1'
+        setFichas(all.filter((f) => {
+          if (!mostrarCanceladas && f.status === 'cancelada') return false
+          if (origem && f.origem !== origem) return false
+          if (!busca) return true
+          return (
+            f.numeroFicha.includes(busca) ||
+            f.nomeResponsavel.toLowerCase().includes(busca) ||
+            f.cpfResponsavel.includes(busca) ||
+            f.criancas.some((c) => c.nomeCompleto.toLowerCase().includes(busca))
+          )
+        }))
       }
     })
-  }, [campanha, fichaId])
+  }, [campanha, fichaId, searchParams])
 
   const dataFesta = campanha?.dataEvento
     ? new Date(campanha.dataEvento.seconds * 1000).toISOString().split('T')[0]
@@ -47,7 +62,7 @@ export function FichaPrintPage() {
             </span>
             <Button onClick={() => window.print()}>
               <Printer className="mr-2 h-4 w-4" />
-              {printAll ? 'Imprimir Todas (PDF)' : 'Imprimir'}
+              {printAll ? (filteredPrint ? 'Imprimir Filtradas (PDF)' : 'Imprimir Todas (PDF)') : 'Imprimir'}
             </Button>
           </div>
         </div>

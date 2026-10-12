@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCampanha } from '@/contexts/CampanhaContext'
 import { subscribeFichas } from '@/services/firestore'
 import { Button } from '@/components/ui/button'
@@ -11,11 +11,21 @@ import type { Ficha } from '@/models/types'
 export function FichasListPage() {
   const { campanha } = useCampanha()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [fichas, setFichas] = useState<Ficha[]>([])
-  const [busca, setBusca] = useState('')
-  const [filtroOrigem, setFiltroOrigem] = useState('')
-  const [mostrarCanceladas, setMostrarCanceladas] = useState(false)
   const [showFiltros, setShowFiltros] = useState(false)
+  const busca = searchParams.get('busca') || ''
+  const filtroOrigem = searchParams.get('origem') || ''
+  const mostrarCanceladas = searchParams.get('canceladas') === '1'
+
+  const updateFilter = (key: string, value: string | boolean) => {
+    const next = new URLSearchParams(searchParams)
+    if (value === '' || value === false) next.delete(key)
+    else next.set(key, value === true ? '1' : String(value))
+    setSearchParams(next, { replace: true })
+  }
+
+  const clearFilters = () => setSearchParams({}, { replace: true })
 
   useEffect(() => {
     if (!campanha) return
@@ -40,6 +50,9 @@ export function FichasListPage() {
 
   if (!campanha) return null
 
+  const hasFilter = Boolean(busca || filtroOrigem || mostrarCanceladas)
+  const printQuery = searchParams.toString()
+
   return (
     <div className="p-4 md:p-8">
       <div className="mb-5 flex items-center justify-between gap-3 md:mb-6">
@@ -48,12 +61,13 @@ export function FichasListPage() {
           <Button
             variant="outline"
             className="h-11 w-11 p-0 md:h-10 md:w-auto md:px-4"
-            onClick={() => navigate('/fichas/imprimir')}
-            aria-label="Imprimir todas as fichas"
-            title="Imprimir todas"
+            onClick={() => navigate(`/fichas/imprimir${printQuery ? `?${printQuery}` : ''}`)}
+            disabled={fichasFiltradas.length === 0}
+            aria-label={hasFilter ? 'Imprimir fichas filtradas' : 'Imprimir todas as fichas'}
+            title={hasFilter ? 'Imprimir fichas filtradas' : 'Imprimir todas'}
           >
             <Printer className="h-5 w-5 md:mr-2 md:h-4 md:w-4" />
-            <span className="hidden md:inline">Imprimir Todas</span>
+            <span className="hidden md:inline">{hasFilter ? `Imprimir Filtradas (${fichasFiltradas.length})` : 'Imprimir Todas'}</span>
           </Button>
           <Button className="h-11 md:h-10" onClick={() => navigate('/fichas/nova')}>
             <Plus className="mr-2 h-4 w-4" />
@@ -70,7 +84,7 @@ export function FichasListPage() {
             <Input
               placeholder="Buscar ficha, nome, documento ou criança..."
               value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              onChange={(e) => updateFilter('busca', e.target.value)}
               className="pl-10"
             />
           </div>
@@ -82,7 +96,7 @@ export function FichasListPage() {
             title="Filtros"
           >
             <SlidersHorizontal className="h-4 w-4" />
-            {(filtroOrigem || mostrarCanceladas) && (
+            {(busca || filtroOrigem || mostrarCanceladas) && (
               <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary" />
             )}
           </Button>
@@ -91,7 +105,7 @@ export function FichasListPage() {
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3 md:w-auto"
             value={filtroOrigem}
-            onChange={(e) => setFiltroOrigem(e.target.value)}
+            onChange={(e) => updateFilter('origem', e.target.value)}
           >
             <option value="">Todas as origens</option>
             {campanha.origens.map((o) => (
@@ -102,12 +116,12 @@ export function FichasListPage() {
             <input
               type="checkbox"
               checked={mostrarCanceladas}
-              onChange={(e) => setMostrarCanceladas(e.target.checked)}
+              onChange={(e) => updateFilter('canceladas', e.target.checked)}
             />
             Mostrar canceladas
           </label>
-          {(filtroOrigem || mostrarCanceladas) && (
-            <Button variant="ghost" size="sm" onClick={() => { setFiltroOrigem(''); setMostrarCanceladas(false) }}>
+          {(busca || filtroOrigem || mostrarCanceladas) && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
               Limpar filtros
             </Button>
           )}
