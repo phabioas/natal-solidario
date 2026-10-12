@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Search, Heart, X, FileText, Share2, SlidersHorizontal } from 'lucide-react'
+import { Search, Heart, X, Link2, Share2, SlidersHorizontal } from 'lucide-react'
 import type { Ficha, Contato, Crianca } from '@/models/types'
 import { SACOLA_STATUS_LABELS, SACOLA_STATUS_COLORS } from '@/models/types'
 import { toast } from 'sonner'
+import { PUBLIC_LIST_PATH } from '@/lib/publicacao'
 
 export function ApadrinhamentoPage() {
   const { campanha } = useCampanha()
@@ -45,6 +46,16 @@ export function ApadrinhamentoPage() {
 
   if (!campanha) return null
 
+  const copyPublicLink = async () => {
+    const url = `${window.location.origin}${PUBLIC_LIST_PATH}`
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link público copiado!')
+    } catch {
+      window.prompt('Copie o link público:', url)
+    }
+  }
+
   return (
     <div className="p-4 md:p-8">
       <div className="mb-5 flex items-center justify-between gap-3 md:mb-6">
@@ -52,13 +63,13 @@ export function ApadrinhamentoPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate('/apadrinhamento/lista')}
-          aria-label="Abrir lista de crianças disponíveis"
-          title="Lista de disponíveis"
+          onClick={copyPublicLink}
+          aria-label="Copiar link público de crianças disponíveis"
+          title="Copiar link público"
           className="h-11 w-11 p-0 md:h-10 md:w-auto md:px-4"
         >
-          <FileText className="h-5 w-5 md:mr-2 md:h-4 md:w-4" />
-          <span className="hidden md:inline">Lista de Disponíveis (WhatsApp)</span>
+          <Link2 className="h-5 w-5 md:mr-2 md:h-4 md:w-4" />
+          <span className="hidden md:inline">Copiar Link Público</span>
         </Button>
       </div>
 

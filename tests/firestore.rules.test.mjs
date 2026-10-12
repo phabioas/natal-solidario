@@ -94,6 +94,38 @@ beforeEach(async () => {
   })
 })
 
+describe('lista pública sanitizada', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore()
+      await setDoc(doc(db, 'listasPublicas/lista-secreta'), {
+        campanhaId: 'campanha-2026', nome: 'Natal 2026', ano: 2026, updatedAt: Timestamp.now(),
+      })
+      await setDoc(doc(db, 'listasPublicas/lista-secreta/criancas/001-01'), {
+        idCrianca: '001/01', numeroFicha: '001', nomePublico: 'Maria *** S.', idade: '8A 2m', updatedAt: Timestamp.now(),
+      })
+    })
+  })
+
+  it('permite leitura anônima somente com o token conhecido', async () => {
+    const db = env.unauthenticatedContext().firestore()
+    await assertSucceeds(getDoc(doc(db, 'listasPublicas/lista-secreta')))
+    await assertSucceeds(getDocs(collection(db, 'listasPublicas/lista-secreta/criancas')))
+    await assertFails(getDocs(collection(db, 'listasPublicas')))
+  })
+
+  it('impede escrita anônima e permite sincronização pela equipe', async () => {
+    const anon = env.unauthenticatedContext().firestore()
+    await assertFails(setDoc(doc(anon, 'listasPublicas/lista-secreta/criancas/002-01'), {
+      idCrianca: '002/01', numeroFicha: '002', nomePublico: 'João *** P.', idade: '9A 0m', updatedAt: Timestamp.now(),
+    }))
+    const equipeDb = env.authenticatedContext('equipe').firestore()
+    await assertSucceeds(setDoc(doc(equipeDb, 'listasPublicas/lista-secreta/criancas/002-01'), {
+      idCrianca: '002/01', numeroFicha: '002', nomePublico: 'João *** P.', idade: '9A 0m', updatedAt: Timestamp.now(),
+    }))
+  })
+})
+
 describe('usuário não autenticado', () => {
   it('não lê campanhas nem fichas', async () => {
     const db = env.unauthenticatedContext().firestore()

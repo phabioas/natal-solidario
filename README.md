@@ -124,9 +124,11 @@ pendente → entregue → conferida → no_salao → entregue_crianca
 
 - O identificador da criança usa o formato `{ficha}/{sequência}`, por exemplo `001/01`.
 - A idade é calculada automaticamente para a data do evento quando há data de nascimento.
-- A tela de apadrinhamento permite imprimir ou compartilhar uma lista alfabética das crianças ainda disponíveis, com número, nome, sexo e idade.
+- A tela de apadrinhamento permite copiar um link público, atualizado em tempo real, contendo somente número, nome mascarado e idade em anos/meses das crianças disponíveis.
 - Após o apadrinhamento, é possível abrir a ficha individual da criança contendo tamanhos, indicação de TEA, itens esperados na sacola, prazo e contato.
 - A ficha individual pode ser compartilhada como texto pelo WhatsApp, salva como PNG, compartilhada pelo recurso nativo do celular ou impressa em PDF.
+- Link público atual: `https://getj-natal.web.app/disponiveis/natal-2026-cbdak7g`.
+- A lista pública usa uma collection sanitizada separada; fichas, responsáveis, documentos, telefones, datas de nascimento e observações não são públicos.
 - As fichas cadastrais podem ser impressas individualmente ou em lote.
 
 ## Situação atual e pendências

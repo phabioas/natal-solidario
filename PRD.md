@@ -112,7 +112,7 @@ A criança passa a ter status de sacola `pendente`. O admin pode desfazer o apad
 ### RF07a — Materiais de Apadrinhamento e Compartilhamento (Must)
 O admin pode gerar os materiais usados no fluxo de apadrinhamento:
 
-- Lista alfabética das crianças ainda não apadrinhadas, com ID (`001/01`), nome, sexo e idade, disponível para impressão e compartilhamento por WhatsApp.
+- Página pública em tempo real das crianças ainda não apadrinhadas, acessada por link com token não enumerável. Exibe somente ID (`001/01`), nome mascarado e idade em anos/meses. Usa collection sanitizada separada e não expõe a ficha original.
 - Ficha individual da criança apadrinhada, com ID, nome, sexo, idade, tamanhos de camisa/calça/calçado, indicação de TEA, conteúdo esperado da sacola, prazo de entrega e contato.
 - Compartilhamento da ficha como texto pelo WhatsApp.
 - Geração da ficha como imagem PNG para salvar ou compartilhar pelo recurso nativo do celular.

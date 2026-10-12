@@ -11,6 +11,7 @@ import {
   onSnapshot,
   serverTimestamp,
   Timestamp,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import type {
@@ -19,11 +20,14 @@ import type {
   Contato,
   Usuario,
   ConviteUsuario,
+  ListaPublica,
+  CriancaPublica,
   Origem,
   Crianca,
   SacolaStatus,
 } from '@/models/types'
 import { derivarOrigem } from '@/models/types'
+import { PUBLIC_LIST_ID, criarCriancaPublica, publicChildDocId } from '@/lib/publicacao'
 
 // ─── Campanhas ──────────────────────────────────────────
 
@@ -82,6 +86,79 @@ export async function ativarCampanha(id: string): Promise<void> {
   await updateDoc(doc(db, 'campanhas', id), { ativa: true })
 }
 
+// ─── Lista pública de apadrinhamento ────────────────────
+
+function listaPublicaRef(listaId = PUBLIC_LIST_ID) {
+  return doc(db, 'listasPublicas', listaId)
+}
+
+function criancasPublicasRef(listaId = PUBLIC_LIST_ID) {
+  return collection(db, 'listasPublicas', listaId, 'criancas')
+}
+
+export function subscribeListaPublica(
+  listaId: string,
+  callback: (lista: ListaPublica | null) => void,
+  onError?: (error: Error) => void,
+) {
+  return onSnapshot(listaPublicaRef(listaId), (snap) => {
+    callback(snap.exists() ? { id: snap.id, ...(snap.data() as Omit<ListaPublica, 'id'>) } : null)
+  }, (error) => onError?.(error))
+}
+
+export function subscribeCriancasPublicas(
+  listaId: string,
+  callback: (criancas: CriancaPublica[]) => void,
+  onError?: (error: Error) => void,
+) {
+  return onSnapshot(criancasPublicasRef(listaId), (snap) => {
+    callback(snap.docs
+      .map((d) => ({ id: d.id, ...(d.data() as Omit<CriancaPublica, 'id'>) }))
+      .sort((a, b) => a.idCrianca.localeCompare(b.idCrianca)))
+  }, (error) => onError?.(error))
+}
+
+async function syncFichaPublica(campanhaId: string, ficha: Ficha): Promise<void> {
+  const campanhaSnap = await getDoc(doc(db, 'campanhas', campanhaId))
+  if (!campanhaSnap.exists()) return
+  const campanha = { id: campanhaSnap.id, ...(campanhaSnap.data() as Omit<Campanha, 'id'>) }
+  if (campanha.ano !== 2026 || !campanha.dataEvento) return
+
+  const dataEvento = new Date(campanha.dataEvento.seconds * 1000).toISOString().split('T')[0]
+  const existentes = await getDocs(query(criancasPublicasRef(), where('numeroFicha', '==', ficha.numeroFicha)))
+  const batch = writeBatch(db)
+  existentes.docs.forEach((d) => batch.delete(d.ref))
+
+  if (ficha.status === 'ativa') {
+    ficha.criancas.filter((c) => !c.apadrinhamento).forEach((crianca) => {
+      const publica = criarCriancaPublica(crianca, dataEvento)
+      batch.set(doc(criancasPublicasRef(), publicChildDocId(crianca.idCrianca)), {
+        ...publica,
+        updatedAt: serverTimestamp(),
+      })
+    })
+  }
+  batch.set(listaPublicaRef(), {
+    campanhaId,
+    nome: campanha.nome,
+    ano: campanha.ano,
+    updatedAt: serverTimestamp(),
+  })
+  await batch.commit()
+}
+
+async function syncFichaPublicaById(campanhaId: string, fichaId: string): Promise<void> {
+  const snap = await getDoc(doc(fichasRef(campanhaId), fichaId))
+  if (snap.exists()) await syncFichaPublica(campanhaId, { id: snap.id, ...(snap.data() as Omit<Ficha, 'id'>) })
+}
+
+async function removeFichaPublica(numeroFicha: string): Promise<void> {
+  const existentes = await getDocs(query(criancasPublicasRef(), where('numeroFicha', '==', numeroFicha)))
+  const batch = writeBatch(db)
+  existentes.docs.forEach((d) => batch.delete(d.ref))
+  await batch.commit()
+}
+
 // ─── Fichas ─────────────────────────────────────────────
 
 function fichasRef(campanhaId: string) {
@@ -115,6 +192,7 @@ export async function createFicha(
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
+  await syncFichaPublicaById(campanhaId, ficha.numeroFicha)
 }
 
 export async function updateFicha(
@@ -126,6 +204,7 @@ export async function updateFicha(
     ...data,
     updatedAt: serverTimestamp(),
   } as never)
+  await syncFichaPublicaById(campanhaId, fichaId)
 }
 
 export async function cancelarFicha(
@@ -139,10 +218,12 @@ export async function cancelarFicha(
     dataCancelamento: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
+  await syncFichaPublicaById(campanhaId, fichaId)
 }
 
 export async function deleteFicha(campanhaId: string, fichaId: string): Promise<void> {
   await deleteDoc(doc(fichasRef(campanhaId), fichaId))
+  await removeFichaPublica(fichaId)
 }
 
 // ─── Contatos ───────────────────────────────────────────

@@ -91,6 +91,36 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function validListaPublica(data) {
+      return data.keys().hasOnly(['campanhaId', 'nome', 'ano', 'updatedAt']) &&
+             data.campanhaId is string && data.campanhaId.size() > 0 && data.campanhaId.size() <= 128 &&
+             data.nome is string && data.nome.size() > 0 && data.nome.size() <= 150 &&
+             data.ano is int && data.ano >= 2020 && data.ano <= 2100 &&
+             data.updatedAt is timestamp;
+    }
+
+    function validCriancaPublica(data) {
+      return data.keys().hasOnly(['idCrianca', 'numeroFicha', 'nomePublico', 'idade', 'updatedAt']) &&
+             data.idCrianca is string && data.idCrianca.matches('^[0-9]{3}/[0-9]{2}$') &&
+             data.numeroFicha is string && data.numeroFicha.matches('^[0-9]{3}$') &&
+             data.nomePublico is string && data.nomePublico.size() > 0 && data.nomePublico.size() <= 150 &&
+             data.idade is string && data.idade.size() > 0 && data.idade.size() <= 30 &&
+             data.updatedAt is timestamp;
+    }
+
+    match /listasPublicas/{listaId} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if (isAdmin() || isEquipe()) && validListaPublica(request.resource.data);
+      allow delete: if isAdmin();
+
+      match /criancas/{criancaId} {
+        allow read: if true;
+        allow create, update: if (isAdmin() || isEquipe()) && validCriancaPublica(request.resource.data);
+        allow delete: if isAdmin() || isEquipe();
+      }
+    }
+
     match /usuarios/{uid} {
       allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow list: if isAdmin();

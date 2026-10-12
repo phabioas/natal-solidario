@@ -129,6 +129,23 @@ export interface ConviteUsuario {
   createdAt: Timestamp | null
 }
 
+export interface ListaPublica {
+  id: string
+  campanhaId: string
+  nome: string
+  ano: number
+  updatedAt: Timestamp | null
+}
+
+export interface CriancaPublica {
+  id: string
+  idCrianca: string
+  numeroFicha: string
+  nomePublico: string
+  idade: string
+  updatedAt: Timestamp | null
+}
+
 // ─── Helpers ────────────────────────────────────────────
 
 export const SACOLA_STATUS_LABELS: Record<SacolaStatus, string> = {

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCampanha } from '@/contexts/CampanhaContext'
 import { LoginPage } from '@/pages/LoginPage'
@@ -16,6 +16,7 @@ import { CadastroFichaPage } from '@/pages/cadastro/CadastroFichaPage'
 import { FichaPrintPage } from '@/pages/admin/FichaPrintPage'
 import { ListaApadrinhamentoPrintPage } from '@/pages/admin/ListaApadrinhamentoPrintPage'
 import { FichaPadrinhoPage } from '@/pages/admin/FichaPadrinhoPage'
+import { PublicDisponiveisPage } from '@/pages/PublicDisponiveisPage'
 
 function LoadingScreen() {
   return (
@@ -39,8 +40,18 @@ function NoCampanha() {
 }
 
 export default function App() {
+  const location = useLocation()
   const { user, usuario, loading } = useAuth()
   const { campanha, loading: campanhaLoading } = useCampanha()
+
+  if (location.pathname.startsWith('/disponiveis/')) {
+    return (
+      <Routes>
+        <Route path="/disponiveis/:token" element={<PublicDisponiveisPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    )
+  }
 
   if (loading) return <LoadingScreen />
   if (!user || !usuario) return <LoginPage />
