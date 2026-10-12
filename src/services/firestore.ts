@@ -114,7 +114,7 @@ export function subscribeCriancasPublicas(
   return onSnapshot(criancasPublicasRef(listaId), (snap) => {
     callback(snap.docs
       .map((d) => ({ id: d.id, ...(d.data() as Omit<CriancaPublica, 'id'>) }))
-      .sort((a, b) => a.idCrianca.localeCompare(b.idCrianca)))
+      .sort((a, b) => a.nomePublico.localeCompare(b.nomePublico, 'pt-BR') || a.idCrianca.localeCompare(b.idCrianca)))
   }, (error) => onError?.(error))
 }
 
@@ -258,6 +258,37 @@ export async function updateContato(
   data: Partial<Contato>,
 ): Promise<void> {
   await updateDoc(doc(contatosRef(campanhaId), contatoId), data as never)
+
+  // O nome do contato é denormalizado no apadrinhamento para facilitar listas e
+  // relatórios. Quando ele muda, mantém todas as fichas existentes consistentes.
+  if (typeof data.nome === 'string' && data.nome.trim()) {
+    const fichasSnap = await getDocs(fichasRef(campanhaId))
+    const alteradas = fichasSnap.docs
+      .map((fichaDoc) => {
+        const ficha = fichaDoc.data() as Omit<Ficha, 'id'>
+        let changed = false
+        const criancas = ficha.criancas.map((crianca) => {
+          if (crianca.apadrinhamento?.contatoId !== contatoId || crianca.apadrinhamento.contatoNome === data.nome) {
+            return crianca
+          }
+          changed = true
+          return {
+            ...crianca,
+            apadrinhamento: { ...crianca.apadrinhamento, contatoNome: data.nome! },
+          }
+        })
+        return changed ? { ref: fichaDoc.ref, criancas } : null
+      })
+      .filter((item): item is { ref: typeof fichasSnap.docs[number]['ref']; criancas: Crianca[] } => item !== null)
+
+    for (let i = 0; i < alteradas.length; i += 400) {
+      const batch = writeBatch(db)
+      alteradas.slice(i, i + 400).forEach(({ ref, criancas }) => {
+        batch.update(ref, { criancas, updatedAt: serverTimestamp() })
+      })
+      await batch.commit()
+    }
+  }
 }
 
 export async function deleteContato(campanhaId: string, contatoId: string): Promise<void> {
